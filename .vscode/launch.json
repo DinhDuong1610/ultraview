@@ -1,0 +1,49 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "AppLauncher",
+            "request": "launch",
+            "mainClass": "client.ui.AppLauncher",
+            "projectName": "client"
+        },
+        {
+            "type": "java",
+            "name": "ClientApp",
+            "request": "launch",
+            "mainClass": "client.ui.ClientApp",
+            "projectName": "client"
+        },
+        {
+            "type": "java",
+            "name": "RemoteControlServer",
+            "request": "launch",
+            "mainClass": "server.RemoteControlServer",
+            "projectName": "server"
+        },
+        {
+            "type": "java",
+            "name": "ServerApp",
+            "request": "launch",
+            "mainClass": "server.ui.ServerApp",
+            "projectName": "server"
+        },
+        {
+            "type": "java",
+            "name": "ServerLauncher",
+            "request": "launch",
+            "mainClass": "server.ui.ServerLauncher",
+            "projectName": "server"
+        }
+    ]
+}

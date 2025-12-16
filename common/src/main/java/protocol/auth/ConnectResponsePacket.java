@@ -1,0 +1,11 @@
+package protocol.auth;
+
+import lombok.*;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ConnectResponsePacket {
+    private boolean success;
+    private String message;
+}
