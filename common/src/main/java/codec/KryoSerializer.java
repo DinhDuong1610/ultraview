@@ -18,6 +18,7 @@ import protocol.FileReqPacket;
 import protocol.LoginRequest;
 import protocol.NetworkPacket;
 import protocol.PacketType;
+import protocol.PeerInfoPacket;
 import protocol.StartStreamPacket;
 import protocol.VideoPacket;
 
@@ -48,6 +49,7 @@ public class KryoSerializer {
         kryo.register(FileAcceptPacket.class);
         kryo.register(DisconnectPacket.class);
         kryo.register(AudioPacket.class);
+        kryo.register(PeerInfoPacket.class);
 
         return kryo;
     });

@@ -25,7 +25,7 @@ import java.util.Random;
 
 public class ClientApp extends Application {
 
-    private NetworkClient networkClient;
+    private volatile NetworkClient networkClient;
     private Stage primaryStage;
     private BorderPane mainLayout; // Layout gốc
 
@@ -46,6 +46,10 @@ public class ClientApp extends Application {
     private AudioRecorder audioRecorder;
     private Button btnMic;
     private boolean isMicOn = true; // Mặc định bật
+
+    private ToggleButton btnConnectionMode;
+
+    private boolean pendingP2PMode = true;
 
     // Info
     private final String myId = generateRandomId();
@@ -74,6 +78,7 @@ public class ClientApp extends Application {
         new Thread(() -> {
             try {
                 networkClient = new NetworkClient("127.0.0.1", 8080);
+                networkClient.setP2PEnabled(pendingP2PMode);
                 networkClient.connect(myId, myPass);
                 startClipboardWorker();
                 addSystemMessage(">>> Đã kết nối Server. ID của bạn: " + myId);
@@ -205,6 +210,29 @@ public class ClientApp extends Application {
         partnerPassField.setPromptText("Nhập Mật khẩu");
         partnerPassField.getStyleClass().add("big-input");
 
+        // --- [THÊM MỚI] NÚT CHUYỂN CHẾ ĐỘ P2P/RELAY ---
+        btnConnectionMode = new ToggleButton("🚀 Chế độ: P2P (Trực tiếp)");
+        btnConnectionMode.setSelected(true); // Mặc định là P2P
+        btnConnectionMode.setMaxWidth(Double.MAX_VALUE);
+        btnConnectionMode.setStyle(
+                "-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
+
+        // Logic khi bấm nút
+        btnConnectionMode.setOnAction(e -> {
+            boolean isP2P = btnConnectionMode.isSelected();
+
+            // 1. Lưu vào biến tạm (QUAN TRỌNG)
+            pendingP2PMode = isP2P;
+
+            // 2. Nếu đã có mạng thì cập nhật ngay
+            if (networkClient != null) {
+                networkClient.setP2PEnabled(isP2P);
+            }
+
+            updateModeButtonStyle(isP2P);
+        });
+        // ------------------------------------------------
+
         btnShareScreen = new Button("Bắt đầu điều khiển");
         btnShareScreen.getStyleClass().add("connect-btn");
         btnShareScreen.setPrefHeight(40);
@@ -217,14 +245,25 @@ public class ClientApp extends Application {
                 showAlert("Thiếu thông tin", "Vui lòng nhập ID và Mật khẩu!");
                 return;
             }
+            // --- [THÊM ĐOẠN NÀY: CHỐT CẤU HÌNH MẠNG LẦN CUỐI] ---
+            // Đồng bộ trạng thái từ nút bấm vào NetworkClient trước khi kết nối
+            if (networkClient != null) {
+                boolean isP2P = btnConnectionMode.isSelected();
+                networkClient.setP2PEnabled(isP2P);
+            }
+            // ----------------------------------------------------
             btnShareScreen.setDisable(true);
             btnShareScreen.setText("Đang kết nối...");
             networkClient.requestControl(targetId, targetPass);
         });
 
+        // Thêm nút btnConnectionMode vào giao diện
         rightPane.getChildren().addAll(lblControl, new Label("Nhập thông tin đối tác:"), new Separator(),
                 new Label("Partner ID"), partnerIdField,
                 new Label("Mật khẩu"), partnerPassField,
+                new Label("Cấu hình mạng (Nâng cao):"), // Label phụ
+                btnConnectionMode, // Nút mới
+                new Separator(), // Gạch ngang cho đẹp
                 btnShareScreen);
 
         splitBox.getChildren().addAll(leftPane, rightPane);
@@ -406,6 +445,17 @@ public class ClientApp extends Application {
                 setGraphic(rowBox);
             }
         });
+    }
+
+    // Hàm Helper để đổi màu nút cho ngầu
+    private void updateModeButtonStyle(boolean isP2P) {
+        if (isP2P) {
+            btnConnectionMode.setText("🚀 Chế độ: P2P (Tốc độ cao)");
+            btnConnectionMode.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;");
+        } else {
+            btnConnectionMode.setText("☁ Chế độ: Server Relay (Dự phòng)");
+            btnConnectionMode.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;");
+        }
     }
 
     // --- HELPER METHODS ---

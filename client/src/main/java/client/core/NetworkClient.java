@@ -43,9 +43,20 @@ public class NetworkClient {
     private Channel udpChannel; // Kênh UDP mới
     private Map<String, File> pendingFiles = new ConcurrentHashMap<>();
 
+    // Biến lưu địa chỉ P2P của đối tác
+    private InetSocketAddress peerAddress;
+
+    // Cờ bật/tắt chế độ P2P (Để sau này làm nút giả lập lỗi)
+    private volatile boolean p2pEnabled = true;
+
     public NetworkClient(String host, int port) {
         this.host = host;
         this.port = port;
+
+        ClientHandler.onPeerInfoReceived = (peerPacket) -> {
+            this.peerAddress = new InetSocketAddress(peerPacket.getHost(), peerPacket.getPort());
+            System.out.println(">>> [SUCCESS] Đã nhận được địa chỉ P2P của đối tác: " + this.peerAddress);
+        };
     }
 
     public void connect(String userId, String password) {
@@ -125,6 +136,11 @@ public class NetworkClient {
         }).start();
     }
 
+    public void setP2PEnabled(boolean enabled) {
+        this.p2pEnabled = enabled;
+        System.out.println(">>> Switch Mode: " + (enabled ? "P2P" : "RELAY"));
+    }
+
     public void requestControl(String targetId, String targetPass) {
         if (tcpChannel != null && tcpChannel.isActive()) {
             ConnectRequestPacket req = new ConnectRequestPacket(targetId, targetPass);
@@ -146,24 +162,57 @@ public class NetworkClient {
         }
     }
 
+    // public void sendVideoPacket(VideoPacket packet) {
+    // if (udpChannel != null && udpChannel.isActive()) {
+    // try {
+    // byte[] bytes = KryoSerializer.serialize(packet);
+    // if (bytes.length > 60000) {
+    // /* ... */ return;
+    // }
+
+    // // --- SỬA ĐOẠN NÀY ---
+    // // Đảm bảo host là địa chỉ IP chính xác mà Server đang bind (127.0.0.1 nếu
+    // test
+    // // local)
+    // // Nếu bạn truyền "localhost", hãy thử đổi thành "127.0.0.1" khi khởi tạo
+    // // NetworkClient
+    // DatagramPacket datagram = new DatagramPacket(
+    // io.netty.buffer.Unpooled.wrappedBuffer(bytes),
+    // new InetSocketAddress(host, port + 1) // Port 8081
+    // );
+    // // --------------------
+
+    // udpChannel.writeAndFlush(datagram);
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+    // }
+    // }
+
     public void sendVideoPacket(VideoPacket packet) {
         if (udpChannel != null && udpChannel.isActive()) {
             try {
                 byte[] bytes = KryoSerializer.serialize(packet);
-                if (bytes.length > 60000) {
-                    /* ... */ return;
+                if (bytes.length > 60000)
+                    return;
+
+                InetSocketAddress target;
+
+                // LOGIC CHUYỂN MẠCH THÔNG MINH
+                // --- THÊM LOG DEBUG TẠI ĐÂY ---
+                if (p2pEnabled && peerAddress != null) {
+                    target = peerAddress;
+                    System.out.println("DEBUG: Gửi P2P tới " + target); // Mở cái này nếu muốn soi kỹ
+                } else {
+                    target = new InetSocketAddress(host, port + 1);
+
+                    System.out.println("DEBUG: Fallback to Server (Vì chưa có địa chỉ Peer)");
+
                 }
 
-                // --- SỬA ĐOẠN NÀY ---
-                // Đảm bảo host là địa chỉ IP chính xác mà Server đang bind (127.0.0.1 nếu test
-                // local)
-                // Nếu bạn truyền "localhost", hãy thử đổi thành "127.0.0.1" khi khởi tạo
-                // NetworkClient
                 DatagramPacket datagram = new DatagramPacket(
                         io.netty.buffer.Unpooled.wrappedBuffer(bytes),
-                        new InetSocketAddress(host, port + 1) // Port 8081
-                );
-                // --------------------
+                        target);
 
                 udpChannel.writeAndFlush(datagram);
             } catch (Exception e) {
@@ -290,4 +339,5 @@ public class NetworkClient {
             tcpChannel.writeAndFlush(new NetworkPacket(PacketType.AUDIO_DATA, audio));
         }
     }
+
 }

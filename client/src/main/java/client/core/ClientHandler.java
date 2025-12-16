@@ -12,6 +12,7 @@ import protocol.FileOfferPacket;
 import protocol.FileReqPacket;
 import protocol.NetworkPacket;
 import protocol.PacketType;
+import protocol.PeerInfoPacket;
 import protocol.StartStreamPacket;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -37,6 +38,8 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
     // Disconnect
     public static Consumer<String> onPartnerDisconnect;
 
+    public static Consumer<PeerInfoPacket> onPeerInfoReceived;
+
     // --- CÁC WORKER XỬ LÝ LOGIC NGẦM ---
     private static ControlExecutor executor = new ControlExecutor();
     private static FileReceiver fileReceiver = new FileReceiver();
@@ -55,6 +58,13 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
             String text = "[" + msg.getSenderId() + "]: " + msg.getMessage();
             if (onMessageReceived != null) {
                 Platform.runLater(() -> onMessageReceived.accept(text));
+            }
+        }
+
+        else if (packet.getType() == PacketType.PEER_INFO) {
+            PeerInfoPacket peer = (PeerInfoPacket) packet.getPayload();
+            if (onPeerInfoReceived != null) {
+                onPeerInfoReceived.accept(peer);
             }
         }
 
@@ -91,6 +101,8 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
                 try {
                     StringSelection selection = new StringSelection(text);
                     Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
+                } catch (IllegalStateException ex) {
+                    System.err.println("Clipboard busy, skipping update.");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

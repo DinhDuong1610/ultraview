@@ -17,5 +17,6 @@ public enum PacketType {
     CONNECT_RESPONSE, // Server trả lời B (Thành công/Thất bại)
     START_STREAM, // Server ra lệnh cho A bắt đầu share
     DISCONNECT_NOTICE,
-    AUDIO_DATA
+    AUDIO_DATA,
+    PEER_INFO
 }

@@ -7,6 +7,7 @@ import protocol.DisconnectPacket;
 import protocol.LoginRequest;
 import protocol.NetworkPacket;
 import protocol.PacketType;
+import protocol.PeerInfoPacket;
 import protocol.StartStreamPacket;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,6 +16,7 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,8 +53,20 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
             for (Channel ch : clients.values()) {
                 ch.writeAndFlush(packet);
             }
+
+            updateClientListUI(userId, "", false);
         }
         super.channelInactive(ctx);
+    }
+
+    private void updateClientListUI(String userId, String ip, boolean isAdd) {
+        javafx.application.Platform.runLater(() -> {
+            if (isAdd) {
+                server.ServerApp.connectedClients.add(new server.ServerApp.ClientModel(userId, ip, "Online"));
+            } else {
+                server.ServerApp.connectedClients.removeIf(c -> c.getId().equals(userId));
+            }
+        });
     }
 
     @Override
@@ -65,6 +79,14 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
 
                 // LƯU PASSWORD
                 passwords.put(login.getUserId(), login.getPassword());
+
+                // IP Address lấy từ Channel
+                String clientIp = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
+
+                System.out.println("User logged in: " + login.getUserId() + " from " + clientIp);
+
+                // CẬP NHẬT UI SERVER
+                updateClientListUI(login.getUserId(), clientIp, true);
 
                 System.out.println("User logged in: " + login.getUserId() + " | Pass: " + login.getPassword());
                 ctx.writeAndFlush(new NetworkPacket(PacketType.LOGIN_RESPONSE, "OK"));
@@ -124,6 +146,33 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
         // Việc A: Báo cho người điều khiển (B) biết là OK
         ctx.writeAndFlush(new NetworkPacket(PacketType.CONNECT_RESPONSE,
                 new ConnectResponsePacket(true, "Kết nối thành công!")));
+
+        // --- [LOGIC P2P MỚI: TRAO ĐỔI 2 CHIỀU] ---
+
+        // Lấy thông tin UDP của cả 2 máy
+        String userIdA = getClientId(ctx.channel()); // Người điều khiển
+        String userIdB = targetId; // Người bị điều khiển
+
+        InetSocketAddress udpA = UdpServerHandler.udpClients.get(userIdA);
+        InetSocketAddress udpB = UdpServerHandler.udpClients.get(userIdB);
+
+        // 1. Gửi IP của B cho A (Để A biết B ở đâu - dù A chủ yếu nhận)
+        if (udpB != null) {
+            System.out.println("P2P: Gửi IP của B (" + udpB + ") cho A.");
+            PeerInfoPacket infoB = new PeerInfoPacket(udpB.getAddress().getHostAddress(), udpB.getPort());
+            ctx.writeAndFlush(new NetworkPacket(PacketType.PEER_INFO, infoB));
+        }
+
+        // 2. [QUAN TRỌNG] Gửi IP của A cho B (Để B biết đường bắn Video thẳng sang A)
+        Channel channelB = clients.get(userIdB); // Lấy kết nối TCP của B
+        if (channelB != null && channelB.isActive() && udpA != null) {
+            System.out.println("P2P: Gửi IP của A (" + udpA + ") cho B.");
+            PeerInfoPacket infoA = new PeerInfoPacket(udpA.getAddress().getHostAddress(), udpA.getPort());
+            channelB.writeAndFlush(new NetworkPacket(PacketType.PEER_INFO, infoA));
+        } else {
+            System.err.println("P2P WARN: Không thể gửi IP của A cho B (Do B mất kết nối hoặc A chưa ĐK UDP).");
+        }
+        // ----------------------------------------
 
         // Việc B: Ra lệnh cho máy bị điều khiển (A) bắt đầu Share màn hình tới B
         // Lưu ý: Gửi ID của người điều khiển (người gửi packet này) cho A biết

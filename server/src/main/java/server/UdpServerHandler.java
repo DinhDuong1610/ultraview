@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
-    private static final Map<String, InetSocketAddress> udpClients = new ConcurrentHashMap<>();
+    public static final Map<String, InetSocketAddress> udpClients = new ConcurrentHashMap<>();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) throws Exception {
@@ -30,15 +30,24 @@ public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket
                 String senderId = videoPacket.getSenderId();
                 String targetId = videoPacket.getTargetId();
 
-                // Lưu địa chỉ người gửi
-                udpClients.put(senderId, packet.sender());
+                // --- SỬA LOGIC LOGGING ---
+                if (senderId != null) {
+                    InetSocketAddress oldAddr = udpClients.get(senderId);
+                    InetSocketAddress newAddr = packet.sender();
+
+                    // Chỉ cập nhật và in log nếu địa chỉ thay đổi hoặc chưa có
+                    if (oldAddr == null || !oldAddr.equals(newAddr)) {
+                        udpClients.put(senderId, newAddr);
+                        System.out.println("UDP REGISTERED (New/Update): User " + senderId + " at " + newAddr);
+                    }
+                }
 
                 // 3. Chuyển tiếp (Relay)
                 if (targetId != null && !targetId.isEmpty()) {
                     InetSocketAddress targetAddr = udpClients.get(targetId);
 
                     if (targetAddr != null) {
-                        // System.out.println("-> Relaying video from " + senderId + " to " + targetId);
+                        System.out.println("-> Relaying video from " + senderId + " to " + targetId);
 
                         // --- SỬA LỖI TẠI ĐÂY ---
                         // Thay vì gửi packet.content() (đã bị đọc hết), ta gửi gói tin mới chứa mảng
