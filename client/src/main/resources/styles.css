@@ -1,0 +1,310 @@
+/* Giao diện Dark Mode Modern */
+.root {
+    -fx-background-color: #1e1e1e;
+    -fx-font-family: 'Segoe UI', sans-serif;
+}
+
+/* --- TAB PANE STYLING --- */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #252526;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #2d2d2d;
+    -fx-background-insets: 0 1 0 0;
+    -fx-padding: 10 20;
+    -fx-text-fill: #888;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #3e3e42;
+    -fx-border-color: #007acc;
+    -fx-border-width: 0 0 2 0;
+    /* Gạch chân màu xanh khi chọn */
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.tab-pane .tab-content-area {
+    -fx-background-color: #1e1e1e;
+    -fx-padding: 15;
+}
+
+/* --- CHAT MESSENGER STYLE --- */
+.list-view {
+    -fx-background-color: transparent;
+    -fx-padding: 10;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 5;
+}
+
+.list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+/* Bong bóng chat của MÌNH (Bên phải, màu xanh) */
+.chat-bubble-me {
+    -fx-background-color: #0078d7;
+    -fx-background-radius: 15 15 0 15;
+    /* Bo tròn góc */
+    -fx-padding: 8 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 3, 0, 1, 1);
+}
+
+.chat-text-me {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+/* Bong bóng chat của ĐỐI TÁC (Bên trái, màu xám) */
+.chat-bubble-partner {
+    -fx-background-color: #3e3e42;
+    -fx-background-radius: 15 15 15 0;
+    -fx-padding: 8 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 3, 0, 1, 1);
+}
+
+.chat-text-partner {
+    -fx-text-fill: #e0e0e0;
+    -fx-font-size: 14px;
+}
+
+/* --- CÁC COMPONENT KHÁC --- */
+.card {
+    -fx-background-color: #252526;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.4), 5, 0, 0, 0);
+    -fx-padding: 20;
+}
+
+.title-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #00a8ff;
+}
+
+.label {
+    -fx-text-fill: #cccccc;
+}
+
+.text-field {
+    -fx-background-color: #333337;
+    -fx-text-fill: white;
+    -fx-border-color: #4e4e50;
+    -fx-border-radius: 4;
+}
+
+.primary-button {
+    -fx-background-color: #0e639c;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 4;
+}
+
+.primary-button:hover {
+    -fx-background-color: #1177bb;
+}
+
+.icon-button {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-text-fill: #888;
+    -fx-border-color: #555;
+    -fx-border-radius: 4;
+}
+
+.icon-button:hover {
+    -fx-background-color: #333;
+    -fx-text-fill: white;
+}
+
+/* ... Giữ nguyên các phần cũ ... */
+
+/* Layout chia cột */
+.split-pane {
+    -fx-background-color: #1e1e1e;
+}
+
+/* Card bên trái (Allow Control) */
+.left-card {
+    -fx-background-color: #2d2d2d;
+    /* Màu nền tối vừa */
+    -fx-padding: 30;
+    -fx-border-color: #3d3d3d;
+    -fx-border-width: 0 1 0 0;
+    /* Đường kẻ dọc ngăn cách */
+}
+
+/* Card bên phải (Control Remote) */
+.right-card {
+    -fx-background-color: #1e1e1e;
+    /* Màu nền tối đậm hơn chút */
+    -fx-padding: 30;
+}
+
+/* Label tiêu đề xanh dương (Giống UltraViewer) */
+.header-blue {
+    -fx-text-fill: #569cd6;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* Label tiêu đề cam/vàng (Giống UltraViewer) */
+.header-orange {
+    -fx-text-fill: #ce9178;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+/* Input to và rõ ràng */
+.big-input {
+    -fx-font-size: 16px;
+    -fx-pref-height: 40px;
+    -fx-background-color: #3c3c3c;
+    -fx-text-fill: white;
+    -fx-border-color: #555;
+    -fx-border-radius: 3;
+}
+
+.big-input:focused {
+    -fx-border-color: #007acc;
+}
+
+/* Nút Connect màu xanh lá nhạt hoặc xám sáng (Giống style hiện đại) */
+.connect-btn {
+    -fx-background-color: #cccccc;
+    -fx-text-fill: #333;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+}
+
+.connect-btn:hover {
+    -fx-background-color: white;
+}
+
+
+/* ... Giữ nguyên các phần cũ ... */
+
+/* Nút đính kèm file (Icon kẹp giấy) */
+.attach-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #aaa;
+    -fx-font-size: 18px;
+    -fx-cursor: hand;
+    -fx-padding: 0 10 0 5;
+}
+
+.attach-btn:hover {
+    -fx-text-fill: white;
+    -fx-background-color: #3e3e42;
+    -fx-background-radius: 50%;
+    /* Hiệu ứng tròn khi hover */
+}
+
+/* Khung nhập liệu chat (Gộp nút file + input + nút gửi) */
+.chat-input-box {
+    -fx-background-color: #333337;
+    -fx-background-radius: 20;
+    /* Bo tròn giống Messenger */
+    -fx-border-color: #4e4e50;
+    -fx-border-radius: 20;
+    -fx-padding: 0 10;
+    /* Padding bên trong */
+}
+
+/* Input trong suốt (để hòa vào box bo tròn) */
+.chat-input-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-border-width: 0;
+}
+
+.chat-input-field:focused {
+    -fx-background-color: transparent;
+    /* Bỏ highlight mặc định */
+}
+
+/* ... Code cũ giữ nguyên ... */
+
+/* Bong bóng chứa File */
+.file-bubble {
+    -fx-background-color: #2d2d30;
+    -fx-border-color: #555;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.3), 3, 0, 0, 0);
+}
+
+.file-name {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.file-size {
+    -fx-text-fill: #888;
+    -fx-font-size: 11px;
+}
+
+.download-btn {
+    -fx-background-color: #0078d7;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-cursor: hand;
+    -fx-padding: 5 15;
+    -fx-background-radius: 15;
+}
+
+.download-btn:hover {
+    -fx-background-color: #1084e3;
+}
+
+/* ... Các phần khác giữ nguyên ... */
+
+/* --- CHAT BUBBLES --- */
+
+/* Style chung cho Label tin nhắn */
+.chat-message-label {
+    -fx-font-size: 14px;
+    -fx-padding: 8 12;
+    /* Padding bên trong bong bóng */
+    -fx-background-radius: 15;
+    /* Bo tròn */
+    -fx-border-radius: 15;
+}
+
+/* Bong bóng của MÌNH (Màu xanh) */
+.chat-bubble-me {
+    -fx-background-color: #0078d7;
+    -fx-text-fill: white;
+    -fx-background-radius: 15 15 0 15;
+    /* Góc nhọn bên phải dưới */
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 3, 0, 1, 1);
+}
+
+/* Bong bóng của ĐỐI TÁC (Màu xám) */
+.chat-bubble-partner {
+    -fx-background-color: #3e3e42;
+    -fx-text-fill: #e0e0e0;
+    -fx-background-radius: 15 15 15 0;
+    /* Góc nhọn bên trái dưới */
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 3, 0, 1, 1);
+}
+
+/* Tin nhắn hệ thống */
+.chat-system-label {
+    -fx-text-fill: #888;
+    -fx-font-style: italic;
+    -fx-font-size: 12px;
+    -fx-padding: 5;
+    -fx-alignment: center;
+}
