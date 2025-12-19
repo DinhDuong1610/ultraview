@@ -43,9 +43,10 @@ public class ChatController {
         view.setPadding(new Insets(10));
         view.setStyle("-fx-background-color: #1e1e1e;");
 
-        Label chatHeader = new Label("Trò chuyện & Truyền tệp");
-        chatHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: white;");
-        view.getChildren().add(chatHeader);
+        // Label chatHeader = new Label("Trò chuyện & Truyền tệp");
+        // chatHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;
+        // -fx-text-fill: white;");
+        // view.getChildren().add(chatHeader);
 
         // Chat List
         chatListView = new ListView<>(chatMessages);

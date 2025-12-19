@@ -18,7 +18,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         ServerContext.allChannels.add(ctx.channel());
-        System.out.println("New Connection: " + ctx.channel().remoteAddress());
+        // System.out.println("New Connection: " + ctx.channel().remoteAddress());
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
         String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
         ServerContext.addClient(req.getUserId(), req.getPassword(), ctx.channel(), ip);
 
-        System.out.println("User Logged in: " + req.getUserId());
+        System.out.println("User Login: " + req.getUserId());
         ctx.writeAndFlush(new NetworkPacket(PacketType.LOGIN_RESPONSE, "OK"));
     }
 
@@ -108,14 +108,14 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
 
         // Gửi IP của B cho A
         if (udpB != null) {
-            System.out.println("P2P: Gửi Info B -> A");
+            // System.out.println("P2P: Gửi Info B -> A");
             ctxA.writeAndFlush(new NetworkPacket(PacketType.PEER_INFO,
                     new PeerInfoPacket(udpB.getAddress().getHostAddress(), udpB.getPort())));
         }
 
         // Gửi IP của A cho B
         if (udpA != null && channelB != null) {
-            System.out.println("P2P: Gửi Info A -> B");
+            // System.out.println("P2P: Gửi Info A -> B");
             channelB.writeAndFlush(new NetworkPacket(PacketType.PEER_INFO,
                     new PeerInfoPacket(udpA.getAddress().getHostAddress(), udpA.getPort())));
         }
@@ -142,7 +142,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
+        // cause.printStackTrace();
         ctx.close();
     }
 }

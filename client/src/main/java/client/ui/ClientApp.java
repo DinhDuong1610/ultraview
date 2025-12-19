@@ -81,7 +81,7 @@ public class ClientApp extends Application {
 
     private void initServices() {
         // Tạo NetworkClient trước (chưa connect vội)
-        networkClient = new NetworkClient("127.0.0.1", 8080);
+        networkClient = new NetworkClient("192.168.1.8", 8080);
 
         // Các Service phụ thuộc vào NetworkClient
         fileSender = new FileSender(networkClient);
@@ -111,7 +111,7 @@ public class ClientApp extends Application {
                 // false, true));
             } catch (Exception e) {
                 Platform.runLater(() -> showAlert("Lỗi kết nối", e.getMessage()));
-                e.printStackTrace();
+                // e.printStackTrace();
             }
         }).start();
     }
@@ -122,9 +122,17 @@ public class ClientApp extends Application {
 
         // --- MENU BAR ---
         MenuBar menuBar = new MenuBar();
+        menuBar.getStyleClass().add("menu-bar");
+        menuBar.setStyle("-fx-background-color: #333333; -fx-text-fill: white;");
         Menu menuView = new Menu("Chế độ xem");
+        menuView.getStyleClass().add("menu-bar");
+        menuView.setStyle("-fx-background-color: #434343ff; -fx-text-fill: white;");
         MenuItem itemDashboard = new MenuItem("Bảng điều khiển");
-        MenuItem itemChat = new MenuItem("Trò chuyện & File");
+        itemDashboard.getStyleClass().add("menu-bar");
+        itemDashboard.setStyle("-fx-background-color: #ffffffff; -fx-text-fill: black;");
+        MenuItem itemChat = new MenuItem("Trò chuyện");
+        itemChat.getStyleClass().add("menu-bar");
+        itemChat.setStyle("-fx-background-color: #ffffffff; -fx-text-fill: black;");
 
         // Điều hướng giữa các View
         itemDashboard.setOnAction(e -> mainLayout.setCenter(dashboardController.getView()));
@@ -163,7 +171,7 @@ public class ClientApp extends Application {
         // --- SCENE ---
         Scene scene = new Scene(mainLayout, 900, 600);
         applyCSS(scene);
-        primaryStage.setTitle("UltraViewer Clone Pro - " + myId);
+        primaryStage.setTitle("UltraViewer" + myId);
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -313,7 +321,7 @@ public class ClientApp extends Application {
                 alert.setHeaderText("Đối tác muốn gửi file: " + req.getFileName());
                 alert.setContentText("Kích thước: " + (req.getFileSize() / 1024) + " KB. Bạn có muốn nhận?");
 
-                ButtonType btnNhan = new ButtonType("Nhận & Chọn nơi lưu");
+                ButtonType btnNhan = new ButtonType("Chọn nơi lưu");
                 ButtonType btnHuy = new ButtonType("Từ chối", ButtonBar.ButtonData.CANCEL_CLOSE);
                 alert.getButtonTypes().setAll(btnNhan, btnHuy);
 
@@ -362,22 +370,68 @@ public class ClientApp extends Application {
     }
 
     // --- REMOTE VIEW WINDOW LOGIC ---
+    // private void showRemoteWindow(Image image) {
+    // if (remoteStage == null || !remoteStage.isShowing()) {
+    // remoteStage = new Stage();
+    // remoteView = new ImageView();
+    // remoteView.setPreserveRatio(true);
+    // remoteView.setFitWidth(1024);
+
+    // StackPane root = new StackPane(remoteView);
+    // root.setStyle("-fx-background-color: black;");
+    // root.setAlignment(Pos.CENTER);
+
+    // Scene scene = new Scene(root, 1024, 768);
+    // setupInputEvents(remoteView, scene);
+
+    // remoteStage.setTitle("Remote Control - " +
+    // dashboardController.getTargetId());
+    // remoteStage.setScene(scene);
+    // remoteStage.show();
+    // remoteStage.setOnCloseRequest(e -> remoteStage = null);
+    // }
+    // remoteView.setImage(image);
+    // }
+
+    // --- REMOTE VIEW WINDOW LOGIC ---
     private void showRemoteWindow(Image image) {
         if (remoteStage == null || !remoteStage.isShowing()) {
             remoteStage = new Stage();
             remoteView = new ImageView();
+
+            // Giữ tỷ lệ khung hình (để hình không bị méo)
             remoteView.setPreserveRatio(true);
-            remoteView.setFitWidth(1024);
+
+            // BỎ DÒNG NÀY: remoteView.setFitWidth(1024);
+            // Thay vào đó, ta sẽ bind kích thước ở dưới
 
             StackPane root = new StackPane(remoteView);
             root.setStyle("-fx-background-color: black;");
             root.setAlignment(Pos.CENTER);
 
+            // Tạo Scene (Kích thước ban đầu không quan trọng lắm vì sẽ phóng to ngay)
             Scene scene = new Scene(root, 1024, 768);
+
+            // --- [QUAN TRỌNG] BINDING KÍCH THƯỚC ---
+            // Tự động thay đổi kích thước ảnh khi cửa sổ thay đổi
+            remoteView.fitWidthProperty().bind(scene.widthProperty());
+            remoteView.fitHeightProperty().bind(scene.heightProperty());
+            // ----------------------------------------
+
             setupInputEvents(remoteView, scene);
 
             remoteStage.setTitle("Remote Control - " + dashboardController.getTargetId());
             remoteStage.setScene(scene);
+
+            // --- LỰA CHỌN CHẾ ĐỘ HIỂN THỊ ---
+
+            // Cách 1: Phóng to tối đa (Vẫn hiện thanh tiêu đề và Taskbar) -> KHUYÊN DÙNG
+            remoteStage.setMaximized(true);
+
+            // Cách 2: Full Screen hoàn toàn (Tràn viền, che mất Taskbar)
+            // remoteStage.setFullScreen(true);
+            // remoteStage.setFullScreenExitHint("Nhấn ESC để thoát chế độ toàn màn hình");
+
             remoteStage.show();
             remoteStage.setOnCloseRequest(e -> remoteStage = null);
         }

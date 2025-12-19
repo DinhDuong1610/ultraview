@@ -65,7 +65,7 @@ public class DashboardController {
         partnerPassField.getStyleClass().add("big-input");
 
         // Button Switch Mode
-        btnConnectionMode = new ToggleButton("🚀 Chế độ: P2P (Trực tiếp)");
+        btnConnectionMode = new ToggleButton("Chế độ: P2P");
         btnConnectionMode.setSelected(true);
         btnConnectionMode.setMaxWidth(Double.MAX_VALUE);
         btnConnectionMode.setStyle(
@@ -147,10 +147,10 @@ public class DashboardController {
 
     private void updateModeButtonStyle(boolean isP2P) {
         if (isP2P) {
-            btnConnectionMode.setText("🚀 Chế độ: P2P (Tốc độ cao)");
+            btnConnectionMode.setText("Chế độ: P2P");
             btnConnectionMode.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold;");
         } else {
-            btnConnectionMode.setText("☁ Chế độ: Server Relay (Dự phòng)");
+            btnConnectionMode.setText("Chế độ: Server Relay");
             btnConnectionMode.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; -fx-font-weight: bold;");
         }
     }

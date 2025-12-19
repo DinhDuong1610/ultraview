@@ -38,7 +38,7 @@ public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 
                 if (oldAddr == null || !oldAddr.equals(senderAddr)) {
                     ServerContext.registerUdp(senderId, senderAddr);
-                    System.out.println("UDP REGISTERED (Update): User " + senderId + " at " + senderAddr);
+                    System.out.println("UDP REGISTERED: User " + senderId + " at " + senderAddr);
                 }
             }
 
@@ -70,6 +70,6 @@ public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
+        // cause.printStackTrace();
     }
 }
