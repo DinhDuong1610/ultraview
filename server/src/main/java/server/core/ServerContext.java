@@ -5,32 +5,25 @@ import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import server.model.ClientModel;
-import server.ui.ServerApp; // Sẽ sửa ServerApp sau
+import server.ui.ServerApp;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-// Singleton Pattern: Quản lý toàn bộ trạng thái Server
 public class ServerContext {
 
-    // 1. Dữ liệu TCP
     private static final Map<String, Channel> clients = new ConcurrentHashMap<>();
     private static final Map<String, String> passwords = new ConcurrentHashMap<>();
 
-    // 2. Dữ liệu UDP (Chuyển từ UdpServerHandler sang đây cho dễ quản lý)
     private static final Map<String, InetSocketAddress> udpClients = new ConcurrentHashMap<>();
 
-    // 3. Quản lý nhóm Channel (để broadcast)
     public static final ChannelGroup allChannels = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
-
-    // --- CÁC PHƯƠNG THỨC QUẢN LÝ CLIENT ---
 
     public static void addClient(String userId, String pass, Channel channel, String ip) {
         clients.put(userId, channel);
         passwords.put(userId, pass);
 
-        // Cập nhật UI
         ServerApp.updateClientList(new ClientModel(userId, ip, "Online"), true);
     }
 
@@ -39,9 +32,8 @@ public class ServerContext {
             return;
         clients.remove(userId);
         passwords.remove(userId);
-        udpClients.remove(userId); // Xóa cả UDP khi thoát
+        udpClients.remove(userId);
 
-        // Cập nhật UI
         ServerApp.updateClientList(new ClientModel(userId, "", ""), false);
     }
 
@@ -58,7 +50,6 @@ public class ServerContext {
         return clients.containsKey(userId);
     }
 
-    // --- QUẢN LÝ UDP ---
     public static void registerUdp(String userId, InetSocketAddress address) {
         udpClients.put(userId, address);
     }
@@ -67,7 +58,6 @@ public class ServerContext {
         return udpClients.get(userId);
     }
 
-    // --- UTILS ---
     public static String getClientIdByChannel(Channel channel) {
         for (Map.Entry<String, Channel> entry : clients.entrySet()) {
             if (entry.getValue() == channel)

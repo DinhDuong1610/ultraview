@@ -18,7 +18,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         ServerContext.allChannels.add(ctx.channel());
-        // System.out.println("New Connection: " + ctx.channel().remoteAddress());
     }
 
     @Override
@@ -28,7 +27,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
             System.out.println("Client disconnected: " + userId);
             ServerContext.removeClient(userId);
 
-            // Broadcast báo ngắt kết nối cho các máy khác
             NetworkPacket packet = new NetworkPacket(PacketType.DISCONNECT_NOTICE, new DisconnectPacket(userId));
             ServerContext.allChannels.writeAndFlush(packet);
         }
@@ -47,7 +45,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
             case CHAT_MESSAGE:
                 handleForward(ctx, packet, ((ChatMessage) packet.getPayload()).getReceiverId());
                 break;
-            // Các gói tin cần Broadcast (Gửi cho tất cả trừ mình)
             case CONTROL_SIGNAL:
             case CLIPBOARD_DATA:
             case FILE_REQ:
@@ -62,8 +59,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
         }
     }
 
-    // --- LOGIC HANDLERS ---
-
     private void handleLogin(ChannelHandlerContext ctx, LoginRequest req) {
         String ip = ((InetSocketAddress) ctx.channel().remoteAddress()).getAddress().getHostAddress();
         ServerContext.addClient(req.getUserId(), req.getPassword(), ctx.channel(), ip);
@@ -75,7 +70,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
     private void handleConnect(ChannelHandlerContext ctx, ConnectRequestPacket req) {
         String targetId = req.getTargetId();
 
-        // 1. Validate
         if (!ServerContext.isOnline(targetId)) {
             sendConnectResponse(ctx, false, "ID không tồn tại hoặc chưa online!");
             return;
@@ -85,13 +79,10 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
             return;
         }
 
-        // 2. Success Logic
         sendConnectResponse(ctx, true, "Kết nối thành công!");
 
-        // 3. P2P Handshake (Logic phức tạp đã được gom gọn)
         performP2PHandshake(ctx, targetId);
 
-        // 4. Trigger Stream
         String myId = ServerContext.getClientIdByChannel(ctx.channel());
         Channel targetChannel = ServerContext.getClientChannel(targetId);
         if (targetChannel != null) {
@@ -106,16 +97,12 @@ public class ServerHandler extends SimpleChannelInboundHandler<NetworkPacket> {
         InetSocketAddress udpB = ServerContext.getUdpAddress(targetIdB);
         Channel channelB = ServerContext.getClientChannel(targetIdB);
 
-        // Gửi IP của B cho A
         if (udpB != null) {
-            // System.out.println("P2P: Gửi Info B -> A");
             ctxA.writeAndFlush(new NetworkPacket(PacketType.PEER_INFO,
                     new PeerInfoPacket(udpB.getAddress().getHostAddress(), udpB.getPort())));
         }
 
-        // Gửi IP của A cho B
         if (udpA != null && channelB != null) {
-            // System.out.println("P2P: Gửi Info A -> B");
             channelB.writeAndFlush(new NetworkPacket(PacketType.PEER_INFO,
                     new PeerInfoPacket(udpA.getAddress().getHostAddress(), udpA.getPort())));
         }

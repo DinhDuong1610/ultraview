@@ -26,13 +26,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 
 public class KryoSerializer {
-    // ThreadLocal để đảm bảo thread-safety cho Kryo
     private static final ThreadLocal<Kryo> kryoThreadLocal = ThreadLocal.withInitial(() -> {
         Kryo kryo = new Kryo();
-        kryo.setRegistrationRequired(false); // Cho phép serialize cả những class chưa đăng ký (tiện cho dev)
+        kryo.setRegistrationRequired(false);
 
-        // Đăng ký các class để tối ưu hiệu năng (Kryo sẽ dùng ID thay vì gửi nguyên tên
-        // class string dài ngoằng)
         kryo.register(NetworkPacket.class);
         kryo.register(PacketType.class);
         kryo.register(LoginRequest.class);

@@ -1,7 +1,5 @@
 package client.ui.controller;
 
-import client.network.NetworkClient;
-import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -16,7 +14,6 @@ public class DashboardController {
     private Button btnShareScreen;
     private ToggleButton btnConnectionMode;
 
-    // Callbacks để báo ngược lại cho ClientApp
     private Runnable onConnectRequest;
     private Runnable onP2PToggle;
 
@@ -31,7 +28,6 @@ public class DashboardController {
         HBox splitBox = new HBox(20);
         VBox.setVgrow(splitBox, Priority.ALWAYS);
 
-        // --- LEFT PANE (INFO) ---
         VBox leftPane = new VBox(20);
         leftPane.getStyleClass().add("left-card");
         leftPane.setPrefWidth(450);
@@ -47,7 +43,6 @@ public class DashboardController {
                 new VBox(5, new Label("ID của bạn"), createReadOnlyField(myId)),
                 new VBox(5, new Label("Mật khẩu"), createReadOnlyField(myPass)));
 
-        // --- RIGHT PANE (CONTROL) ---
         VBox rightPane = new VBox(20);
         rightPane.getStyleClass().add("right-card");
         rightPane.setPrefWidth(450);
@@ -64,7 +59,6 @@ public class DashboardController {
         partnerPassField.setPromptText("Nhập Mật khẩu");
         partnerPassField.getStyleClass().add("big-input");
 
-        // Button Switch Mode
         btnConnectionMode = new ToggleButton("Chế độ: P2P");
         btnConnectionMode.setSelected(true);
         btnConnectionMode.setMaxWidth(Double.MAX_VALUE);
@@ -77,7 +71,6 @@ public class DashboardController {
                 onP2PToggle.run();
         });
 
-        // Button Connect
         btnShareScreen = new Button("Bắt đầu điều khiển");
         btnShareScreen.getStyleClass().add("connect-btn");
         btnShareScreen.setMaxWidth(Double.MAX_VALUE);
@@ -104,8 +97,6 @@ public class DashboardController {
     public VBox getView() {
         return view;
     }
-
-    // --- GETTERS & SETTERS (Để ClientApp lấy dữ liệu) ---
 
     public String getTargetId() {
         return partnerIdField.getText().trim();
@@ -136,7 +127,6 @@ public class DashboardController {
         btnShareScreen.setText(isConnecting ? "Đang kết nối..." : "Bắt đầu điều khiển");
     }
 
-    // --- HELPERS ---
     private TextField createReadOnlyField(String text) {
         TextField tf = new TextField(text);
         tf.setEditable(false);

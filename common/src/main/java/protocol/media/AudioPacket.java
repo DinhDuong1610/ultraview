@@ -6,6 +6,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AudioPacket {
-    private byte[] data; // Dữ liệu âm thanh thô (PCM)
-    private int length; // Độ dài thực tế
+    private byte[] data;
+    private int length;
 }

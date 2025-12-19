@@ -33,7 +33,6 @@ public class NetworkClient {
     private Channel tcpChannel;
     private Channel udpChannel;
 
-    // P2P Logic
     private InetSocketAddress peerAddress;
     private volatile boolean p2pEnabled = true;
 
@@ -41,7 +40,6 @@ public class NetworkClient {
         this.host = host;
         this.port = port;
 
-        // Callback nhận IP P2P
         ClientHandler.onPeerInfoReceived = (peerPacket) -> {
             this.peerAddress = new InetSocketAddress(peerPacket.getHost(), peerPacket.getPort());
             System.out.println(">>> [SUCCESS] Đã nhận được địa chỉ P2P của đối tác: " + this.peerAddress);
@@ -98,7 +96,6 @@ public class NetworkClient {
                 int localPort = ((InetSocketAddress) udpChannel.localAddress()).getPort();
                 System.out.println("UDP Client bound to local port: " + localPort);
 
-                // Gửi gói tin rỗng để đăng ký NAT/Server
                 Thread.sleep(500);
                 sendVideoPacket(new VideoPacket(deviceId, null, new byte[0], 0, 0, 0, 0));
 
@@ -111,20 +108,15 @@ public class NetworkClient {
         }).start();
     }
 
-    // --- CÁC HÀM GỬI CƠ BẢN (Dành cho Service gọi) ---
-
     public boolean isConnected() {
         return tcpChannel != null && tcpChannel.isActive();
     }
 
-    // Hàm gửi TCP chung cho mọi Service (File, Chat, Audio...)
     public void sendTcpPacket(NetworkPacket packet) {
         if (isConnected()) {
             tcpChannel.writeAndFlush(packet);
         }
     }
-
-    // --- CÁC HÀM GỬI ĐẶC THÙ (Giữ lại logic quan trọng) ---
 
     public void setP2PEnabled(boolean enabled) {
         this.p2pEnabled = enabled;
@@ -152,13 +144,11 @@ public class NetworkClient {
     }
 
     public void sendAudio(byte[] data, int length) {
-        // Copy mảng để an toàn dữ liệu
         byte[] exactData = new byte[length];
         System.arraycopy(data, 0, exactData, 0, length);
         sendTcpPacket(new NetworkPacket(PacketType.AUDIO_DATA, new AudioPacket(exactData, length)));
     }
 
-    // Gửi Video qua UDP (Có logic P2P)
     public void sendVideoPacket(VideoPacket packet) {
         if (udpChannel != null && udpChannel.isActive()) {
             try {
@@ -170,9 +160,8 @@ public class NetworkClient {
 
                 if (p2pEnabled && peerAddress != null) {
                     target = peerAddress;
-                    // System.out.println("DEBUG: Sending P2P");
                 } else {
-                    target = new InetSocketAddress(host, port + 1); // Relay
+                    target = new InetSocketAddress(host, port + 1);
                 }
 
                 DatagramPacket datagram = new DatagramPacket(

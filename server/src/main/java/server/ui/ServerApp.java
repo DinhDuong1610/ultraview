@@ -2,7 +2,6 @@ package server.ui;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -12,8 +11,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import server.RemoteControlServer;
 import server.model.ClientModel;
@@ -25,7 +22,6 @@ import java.util.Date;
 
 public class ServerApp extends Application {
 
-    // --- COMPONENTS ---
     private TextArea logArea;
     private TableView<ClientModel> clientTable;
     private TextField txtPort;
@@ -33,12 +29,10 @@ public class ServerApp extends Application {
     private Label lblStatusIndicator;
     private Label lblClientCount;
 
-    // --- DATA & STATE ---
     private static final ObservableList<ClientModel> connectedClients = FXCollections.observableArrayList();
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
     private Thread serverThread;
 
-    // --- STATIC METHOD UPDATE UI ---
     public static void updateClientList(ClientModel client, boolean isAdd) {
         Platform.runLater(() -> {
             connectedClients.removeIf(c -> c.getId().equals(client.getId()));
@@ -53,7 +47,6 @@ public class ServerApp extends Application {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: #1e1e1e;");
 
-        // --- 1. TOP: HEADER & CONTROL PANEL ---
         VBox topContainer = new VBox(10);
         topContainer.setPadding(new Insets(15));
         topContainer.setStyle(
@@ -70,11 +63,9 @@ public class ServerApp extends Application {
         topContainer.getChildren().addAll(controlBar);
         root.setTop(topContainer);
 
-        // --- 2. CENTER: DASHBOARD (Table) ---
         VBox centerBox = new VBox(10);
         centerBox.setPadding(new Insets(15));
 
-        // Stats Row
         HBox statsBox = new HBox(15);
         statsBox.setAlignment(Pos.CENTER_LEFT);
         Label lblListTitle = new Label("Connected Clients");
@@ -82,19 +73,16 @@ public class ServerApp extends Application {
 
         lblClientCount = new Label("Total: 0");
         lblClientCount.setStyle("-fx-text-fill: #aaaaaa; -fx-font-size: 14px;");
-        // Bind số lượng client vào label
         connectedClients.addListener((javafx.collections.ListChangeListener<ClientModel>) c -> Platform
                 .runLater(() -> lblClientCount.setText("Total: " + connectedClients.size())));
 
         statsBox.getChildren().addAll(lblListTitle, lblClientCount);
 
-        // Table View
         createModernTable();
 
         centerBox.getChildren().addAll(statsBox, clientTable);
         root.setCenter(centerBox);
 
-        // --- 3. BOTTOM: LOGS ---
         VBox bottomBox = new VBox(5);
         bottomBox.setPadding(new Insets(10, 15, 15, 15));
 
@@ -110,12 +98,9 @@ public class ServerApp extends Application {
         bottomBox.getChildren().addAll(lblLog, logArea);
         root.setBottom(bottomBox);
 
-        // --- 4. SETUP SYSTEM ---
         redirectSystemOut();
 
-        // --- SCENE ---
         Scene scene = new Scene(root, 900, 650);
-        // Inject CSS trực tiếp để làm đẹp Table và Button
         scene.getStylesheets().add("data:text/css," + getInlineCSS());
 
         primaryStage.setTitle("Server");
@@ -128,13 +113,10 @@ public class ServerApp extends Application {
         });
     }
 
-    // --- UI CREATION HELPERS ---
-
     private HBox createControlBar() {
         HBox box = new HBox(15);
         box.setAlignment(Pos.CENTER_LEFT);
 
-        // Port Input
         Label lblPort = new Label("PORT:");
         lblPort.setStyle("-fx-text-fill: #dddddd; -fx-font-weight: bold;");
 
@@ -143,7 +125,6 @@ public class ServerApp extends Application {
         txtPort.setStyle(
                 "-fx-background-color: #3e3e42; -fx-text-fill: white; -fx-border-color: #555; -fx-border-radius: 3;");
 
-        // Buttons
         btnStart = new Button("START SERVER");
         btnStart.getStyleClass().add("btn-start");
         btnStart.setOnAction(e -> startServer());
@@ -153,7 +134,6 @@ public class ServerApp extends Application {
         btnStop.setDisable(true);
         btnStop.setOnAction(e -> stopServer());
 
-        // Status Indicator
         HBox statusBox = new HBox(8);
         statusBox.setAlignment(Pos.CENTER);
         statusBox.setStyle("-fx-background-color: #333; -fx-padding: 5 10 5 10; -fx-background-radius: 15;");
@@ -164,7 +144,6 @@ public class ServerApp extends Application {
         lblStatusIndicator = new Label("STOPPED");
         lblStatusIndicator.setStyle("-fx-text-fill: #aaaaaa; -fx-font-weight: bold; -fx-font-size: 11px;");
 
-        // Update Status logic
         lblStatusIndicator.textProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal.equals("RUNNING")) {
                 statusDot.setFill(Color.rgb(46, 204, 113)); // Green
@@ -191,17 +170,14 @@ public class ServerApp extends Application {
         clientTable.getStyleClass().add("modern-table");
         clientTable.setPlaceholder(new Label("No clients connected"));
 
-        // Column ID
         TableColumn<ClientModel, String> colId = new TableColumn<>("CLIENT ID");
         colId.setCellValueFactory(data -> data.getValue().idProperty());
         colId.setStyle("-fx-alignment: CENTER-LEFT; -fx-text-fill: #87cefa; -fx-font-weight: bold;");
 
-        // Column IP
         TableColumn<ClientModel, String> colIp = new TableColumn<>("IP ADDRESS");
         colIp.setCellValueFactory(data -> data.getValue().ipProperty());
         colIp.setStyle("-fx-alignment: CENTER;");
 
-        // Column Status (Custom Cell)
         TableColumn<ClientModel, String> colStatus = new TableColumn<>("STATUS");
         colStatus.setCellValueFactory(data -> data.getValue().statusProperty());
         colStatus.setCellFactory(column -> new TableCell<>() {
@@ -234,8 +210,6 @@ public class ServerApp extends Application {
         clientTable.getColumns().addAll(colId, colIp, colStatus);
     }
 
-    // --- LOGIC START/STOP ---
-
     private void startServer() {
         String portStr = txtPort.getText();
         try {
@@ -244,7 +218,6 @@ public class ServerApp extends Application {
             serverThread = new Thread(() -> {
                 try {
                     System.out.println("Starting Server on port " + port + "...");
-                    // Server chạy tại đây
                     new RemoteControlServer(port).run();
                 } catch (Exception e) {
                     // System.err.println("Server Error: " + e.getMessage());
@@ -254,7 +227,6 @@ public class ServerApp extends Application {
             serverThread.setDaemon(true);
             serverThread.start();
 
-            // Update UI State
             txtPort.setDisable(true);
             btnStart.setDisable(true);
             btnStop.setDisable(false);
@@ -266,12 +238,9 @@ public class ServerApp extends Application {
     }
 
     private void stopServer() {
-        // Lưu ý: Việc dừng hoàn toàn Netty Server từ bên ngoài thread đang chạy cần
-        // logic shutdown trong RemoteControlServer.
-        // Ở đây ta chỉ mô phỏng việc ngắt UI và thread.
 
         if (serverThread != null && serverThread.isAlive()) {
-            serverThread.interrupt(); // Gửi tín hiệu ngắt (dù Netty có thể không dừng ngay lập tức)
+            serverThread.interrupt();
             serverThread = null;
         }
 
@@ -284,10 +253,8 @@ public class ServerApp extends Application {
         btnStart.setDisable(false);
         btnStop.setDisable(true);
         lblStatusIndicator.setText("STOPPED");
-        connectedClients.clear(); // Xóa danh sách client khi tắt server
+        connectedClients.clear();
     }
-
-    // --- LOGGING & CSS ---
 
     private void redirectSystemOut() {
         OutputStream out = new OutputStream() {
@@ -318,7 +285,6 @@ public class ServerApp extends Application {
         });
     }
 
-    // CSS Inline để trang trí Table và Button đẹp hơn
     private String getInlineCSS() {
         return ".root { -fx-font-family: 'Segoe UI', sans-serif; }" +
 

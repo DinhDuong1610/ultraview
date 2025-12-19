@@ -24,12 +24,10 @@ public class ChatController {
     private ObservableList<ChatMessageModel> chatMessages;
     private TextField messageField;
 
-    // Dependencies
     private final Stage stage;
     private final FileSender fileSender;
 
-    // Callbacks
-    private Consumer<String> onSendText; // Báo cho ClientApp biết user muốn gửi text
+    private Consumer<String> onSendText;
 
     public ChatController(Stage stage, FileSender fileSender) {
         this.stage = stage;
@@ -43,18 +41,11 @@ public class ChatController {
         view.setPadding(new Insets(10));
         view.setStyle("-fx-background-color: #1e1e1e;");
 
-        // Label chatHeader = new Label("Trò chuyện & Truyền tệp");
-        // chatHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;
-        // -fx-text-fill: white;");
-        // view.getChildren().add(chatHeader);
-
-        // Chat List
         chatListView = new ListView<>(chatMessages);
         chatListView.getStyleClass().add("chat-list");
         VBox.setVgrow(chatListView, Priority.ALWAYS);
         setupChatBubbleFactory();
 
-        // Input Box
         HBox inputBox = new HBox(10);
         inputBox.setAlignment(Pos.CENTER_LEFT);
         inputBox.getStyleClass().add("chat-input-box");
@@ -98,13 +89,10 @@ public class ChatController {
         this.onSendText = callback;
     }
 
-    // --- LOGIC HANDLERS ---
-
     private void handleSendText() {
         String msg = messageField.getText().trim();
         if (!msg.isEmpty() && onSendText != null) {
             onSendText.accept(msg);
-            // Add message to UI (Optimistic UI update)
             addMessage(new ChatMessageModel(msg, true, false));
             messageField.clear();
         }
@@ -120,8 +108,6 @@ public class ChatController {
         }
     }
 
-    // --- PUBLIC METHODS (Để ClientApp gọi cập nhật UI) ---
-
     public void addMessage(ChatMessageModel chatMessageModel) {
         Platform.runLater(() -> {
             chatMessages.add(chatMessageModel);
@@ -135,10 +121,6 @@ public class ChatController {
             chatListView.scrollTo(chatMessages.size() - 1);
         });
     }
-
-    // --- HELPER CLASSES (Model & Factory) ---
-    // (Copy đoạn setupChatBubbleFactory và ChatMessageModel từ ClientApp vào đây)
-    // Để ngắn gọn, bạn có thể copy y nguyên 2 cái đó vào cuối file này.
 
     private void setupChatBubbleFactory() {
         chatListView.setCellFactory(param -> new ListCell<>() {
@@ -170,7 +152,6 @@ public class ChatController {
                     }
                     rowBox.getChildren().add(lbl);
                 } else if (item.type == MsgType.FILE_OFFER) {
-                    // Logic file bubble
                     VBox bubble = new VBox(5);
                     bubble.getStyleClass().add("file-bubble");
                     bubble.setPrefWidth(220);

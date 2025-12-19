@@ -9,7 +9,6 @@ public class AudioRecorder implements Runnable {
     private TargetDataLine microphone;
     private boolean isRecording = false;
 
-    // Cấu hình âm thanh: 8000Hz, 16bit, Mono (Chuẩn thoại, nhẹ, ít lag)
     private final AudioFormat format = new AudioFormat(8000.0f, 16, 1, true, true);
 
     public AudioRecorder(NetworkClient client) {
@@ -46,11 +45,10 @@ public class AudioRecorder implements Runnable {
             microphone.open(format);
             microphone.start();
 
-            byte[] buffer = new byte[1024]; // Gửi từng gói nhỏ 1KB để giảm độ trễ
+            byte[] buffer = new byte[1024];
             while (isRecording) {
                 int bytesRead = microphone.read(buffer, 0, buffer.length);
                 if (bytesRead > 0) {
-                    // Gửi đi
                     networkClient.sendAudio(buffer, bytesRead);
                 }
             }

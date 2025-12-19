@@ -1,9 +1,9 @@
 package client.network.handler;
 
-import codec.KryoSerializer; // Đảm bảo import đúng
+import codec.KryoSerializer;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.socket.DatagramPacket; // <--- Import này
+import io.netty.channel.socket.DatagramPacket;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 import protocol.media.VideoPacket;
@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-// SỬA: Nhận DatagramPacket thay vì VideoPacket
 public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
     public static Consumer<Image> onImageReceived;
@@ -28,42 +27,31 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagram) throws Exception {
-        // 1. TỰ TAY GIẢI MÃ (Deserialization)
-        // Lấy dữ liệu byte từ gói tin UDP
         byte[] data = new byte[datagram.content().readableBytes()];
         datagram.content().readBytes(data);
 
         VideoPacket packet;
         try {
-            // --- [SỬA LỖI TẠI ĐÂY] ---
-            // Gọi hàm 1 tham số và ép kiểu về VideoPacket
             Object obj = KryoSerializer.deserialize(data);
 
             if (obj instanceof VideoPacket) {
                 packet = (VideoPacket) obj;
             } else {
-                // Nếu nhận nhầm gói tin khác (không phải Video) thì bỏ qua
                 return;
             }
-            // -------------------------
         } catch (Exception e) {
             System.err.println("Lỗi giải mã UDP: " + e.getMessage());
             return;
         }
-        // ---------------------------------------------------------
 
-        // 2. LOGIC GHÉP ẢNH (Giữ nguyên như cũ)
         if (packet.getData() == null || packet.getData().length == 0 || packet.getTotalChunks() == 0) {
-            return; // Bỏ qua gói tin đăng ký
+            return;
         }
 
         long frameId = packet.getFrameId();
         int chunkIndex = packet.getChunkIndex();
         int totalChunks = packet.getTotalChunks();
 
-        // System.out.println("RECV: Frame " + frameId + " Chunk " + chunkIndex);
-
-        // Bỏ qua frame cũ
         if (frameId < lastProcessedFrameId)
             return;
 
@@ -74,7 +62,6 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
         if (frameBuffer.get(frameId).size() == totalChunks) {
             assembleAndDisplay(frameId, totalChunks);
         } else {
-            // Timeout cleanup (2s)
             long firstReceived = frameTimestamps.get(frameId);
             if (System.currentTimeMillis() - firstReceived > 2000) {
                 frameBuffer.remove(frameId);
@@ -89,7 +76,7 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
             int totalSize = 0;
             for (int i = 0; i < totalChunks; i++) {
                 if (!chunks.containsKey(i))
-                    return; // Thiếu mảnh
+                    return;
                 totalSize += chunks.get(i).length;
             }
 
@@ -100,8 +87,6 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
                 System.arraycopy(chunk, 0, fullImage, currentPos, chunk.length);
                 currentPos += chunk.length;
             }
-
-            // System.out.println(">>> RENDER FRAME: " + frameId);
 
             ByteArrayInputStream bis = new ByteArrayInputStream(fullImage);
             Image image = new Image(bis);
@@ -114,7 +99,6 @@ public class UdpClientHandler extends SimpleChannelInboundHandler<DatagramPacket
             frameBuffer.remove(frameId);
             frameTimestamps.remove(frameId);
 
-            // Xóa rác cũ
             frameBuffer.keySet().removeIf(id -> id < lastProcessedFrameId);
 
         } catch (Exception e) {

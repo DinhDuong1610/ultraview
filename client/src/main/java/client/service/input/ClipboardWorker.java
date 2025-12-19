@@ -1,12 +1,8 @@
 package client.service.input;
 
-import javafx.application.Platform;
-import protocol.input.ClipboardPacket;
-
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
 
 import client.network.NetworkClient;
 
@@ -16,8 +12,6 @@ public class ClipboardWorker implements Runnable {
     private String lastContent = "";
     private boolean isRunning = true;
 
-    // Cờ để đánh dấu: Nếu chính ta vừa nhận dữ liệu từ mạng về clipboard
-    // thì đừng gửi ngược lại mạng nữa (Tránh vòng lặp vô tận)
     public static boolean isReceiving = false;
 
     public ClipboardWorker(NetworkClient networkClient) {
@@ -29,24 +23,20 @@ public class ClipboardWorker implements Runnable {
     public void run() {
         while (isRunning) {
             try {
-                // Kiểm tra mỗi 1 giây
                 Thread.sleep(1000);
 
                 if (isReceiving) {
                     isReceiving = false;
-                    // Cập nhật lastContent để không gửi lại cái vừa nhận
                     lastContent = getClipboardText();
                     continue;
                 }
 
                 String currentContent = getClipboardText();
 
-                // Nếu nội dung thay đổi và không rỗng
                 if (currentContent != null && !currentContent.equals(lastContent)) {
                     lastContent = currentContent;
                     System.out.println("Detected Copy: " + currentContent);
 
-                    // Gửi đi
                     networkClient.sendClipboard(currentContent);
                 }
             } catch (Exception e) {
@@ -55,14 +45,12 @@ public class ClipboardWorker implements Runnable {
         }
     }
 
-    // Lấy text từ Clipboard hệ thống
     private String getClipboardText() {
         try {
             if (sysClipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
                 return (String) sysClipboard.getData(DataFlavor.stringFlavor);
             }
         } catch (Exception e) {
-            // Clipboard có thể bị busy bởi app khác, bỏ qua
         }
         return null;
     }

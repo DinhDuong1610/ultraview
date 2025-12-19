@@ -6,5 +6,5 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DisconnectPacket {
-    private String disconnectedId; // ID của người vừa thoát
+    private String disconnectedId;
 }

@@ -29,21 +29,18 @@ import java.util.function.Consumer;
 
 public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
 
-    // Callbacks
     public static Consumer<String> onMessageReceived;
     public static Consumer<ConnectResponsePacket> onConnectResult;
     public static Consumer<String> onStartStreaming;
     public static Consumer<PeerInfoPacket> onPeerInfoReceived;
     public static Consumer<String> onPartnerDisconnect;
 
-    // File Callbacks
     public static Consumer<FileOfferPacket> onFileOffer;
     public static Consumer<String> onFileAccepted;
     public static Consumer<String> onFileTransferSuccess;
     public static Consumer<FileReqPacket> onFileReq;
     public static Consumer<FileChunkPacket> onFileChunk;
 
-    // Audio Player Instance (Giữ static hoặc Singleton để dùng chung)
     private static final AudioPlayer audioPlayer = new AudioPlayer();
 
     @Override
@@ -59,7 +56,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
             case CHAT_MESSAGE:
                 ChatMessage chat = (ChatMessage) packet.getPayload();
                 if (onMessageReceived != null)
-                    onMessageReceived.accept("[" + chat.getSenderId() + "]: " + chat.getMessage());
+                    onMessageReceived.accept(chat.getMessage());
                 break;
 
             case START_STREAM:
@@ -106,32 +103,25 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
                     onFileChunk.accept(chunk);
                 break;
 
-            // --- [KHÔI PHỤC 1] NHẬN TÍN HIỆU ĐIỀU KHIỂN (Chuột/Phím) ---
             case CONTROL_SIGNAL:
                 ControlPayload control = (ControlPayload) packet.getPayload();
-                // Gọi ControlExecutor để thực thi Robot
                 ControlExecutor.execute(control);
                 break;
 
-            // --- [KHÔI PHỤC 2] NHẬN ÂM THANH (Audio) ---
             case AUDIO_DATA:
                 AudioPacket audio = (AudioPacket) packet.getPayload();
-                // Gọi AudioPlayer để phát âm thanh
                 audioPlayer.play(audio.getData());
                 break;
 
-            // --- [KHÔI PHỤC 3] NHẬN CLIPBOARD (Copy/Paste) ---
             case CLIPBOARD_DATA:
                 ClipboardPacket clip = (ClipboardPacket) packet.getPayload();
                 String text = clip.getContent();
 
-                // Cập nhật Clipboard hệ thống (Phải chạy trên luồng JavaFX)
                 Platform.runLater(() -> {
                     try {
                         StringSelection selection = new StringSelection(text);
                         Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, selection);
                     } catch (IllegalStateException ex) {
-                        // Bỏ qua nếu Clipboard đang bận
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

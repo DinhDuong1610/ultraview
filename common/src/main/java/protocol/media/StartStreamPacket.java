@@ -6,5 +6,5 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StartStreamPacket {
-    private String targetId; // ID của người nhận video (Máy B)
+    private String targetId;
 }

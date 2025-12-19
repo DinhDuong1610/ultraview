@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FileChunkPacket {
     private byte[] data;
-    private int length; // Kích thước thực của chunk này
-    private boolean isLast; // Có phải miếng cuối cùng không?
+    private int length;
+    private boolean isLast;
 }

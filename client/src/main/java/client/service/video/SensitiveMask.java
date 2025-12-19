@@ -19,16 +19,13 @@ public class SensitiveMask {
     public static final List<MaskedArea> activeMasks = new CopyOnWriteArrayList<>();
 
     public static void addMasks(List<Rectangle> newRects) {
-        // [QUAN TRỌNG] Tăng lên 4000ms (4 giây)
-        // Để đảm bảo mask luôn tồn tại cho đến khi AI quét xong lượt tiếp theo
         long duration = 6000;
 
         for (Rectangle r : newRects) {
             boolean updated = false;
             for (MaskedArea ma : activeMasks) {
-                // Nếu vùng mới trùng với vùng cũ, gia hạn thêm thời gian
                 if (ma.rect.intersects(r)) {
-                    ma.rect = r; // Cập nhật vị trí mới (nếu có di chuyển nhẹ)
+                    ma.rect = r;
                     ma.expiryTime = System.currentTimeMillis() + duration;
                     updated = true;
                     break;

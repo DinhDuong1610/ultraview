@@ -21,29 +21,29 @@ public class ControlExecutor {
         if (robot == null)
             return;
 
-        int type = payload.getActionType(); // 0: Move, 1: Press, 2: Release, 3: KeyPress, 4: KeyRelease
+        int type = payload.getActionType();
 
         switch (type) {
-            case 0: // Mouse Move
+            case 0:
                 int x = (int) (payload.getX() * screenSize.getWidth());
                 int y = (int) (payload.getY() * screenSize.getHeight());
                 robot.mouseMove(x, y);
                 break;
-            case 1: // Mouse Press
+            case 1:
                 int btnPress = getMask(payload.getButton());
                 if (btnPress != 0)
                     robot.mousePress(btnPress);
                 break;
-            case 2: // Mouse Release
+            case 2:
                 int btnRel = getMask(payload.getButton());
                 if (btnRel != 0)
                     robot.mouseRelease(btnRel);
                 break;
-            case 3: // Key Press
+            case 3:
                 if (payload.getKeyCode() != -1)
                     robot.keyPress(payload.getKeyCode());
                 break;
-            case 4: // Key Release
+            case 4:
                 if (payload.getKeyCode() != -1)
                     robot.keyRelease(payload.getKeyCode());
                 break;

@@ -7,7 +7,6 @@ import java.awt.Rectangle;
 
 public class WindowSensor {
 
-    // Lấy tiêu đề cửa sổ đang focus
     public static String getActiveWindowTitle() {
         WinDef.HWND hwnd = User32.INSTANCE.GetForegroundWindow();
         if (hwnd == null)
@@ -18,7 +17,6 @@ public class WindowSensor {
         return new String(buffer).trim();
     }
 
-    // Lấy tọa độ cửa sổ đang focus
     public static Rectangle getActiveWindowRect() {
         WinDef.HWND hwnd = User32.INSTANCE.GetForegroundWindow();
         if (hwnd == null)
@@ -27,7 +25,6 @@ public class WindowSensor {
         WinDef.RECT rect = new WinDef.RECT();
         User32.INSTANCE.GetWindowRect(hwnd, rect);
 
-        // Chuyển đổi RECT của Win32 sang Rectangle của Java
         int width = rect.right - rect.left;
         int height = rect.bottom - rect.top;
 

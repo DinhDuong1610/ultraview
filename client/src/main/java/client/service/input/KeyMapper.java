@@ -4,12 +4,9 @@ import javafx.scene.input.KeyCode;
 import java.awt.event.KeyEvent;
 
 public class KeyMapper {
-    // Hàm chuyển đổi từ JavaFX KeyCode sang AWT KeyEvent
     public static int toAwtKeyCode(KeyCode fxKey) {
-        // 1. Chữ cái (A-Z) và Số (0-9) thường giống nhau
         String name = fxKey.getName().toUpperCase();
 
-        // 2. Xử lý các phím đặc biệt
         switch (fxKey) {
             case ENTER:
                 return KeyEvent.VK_ENTER;
@@ -71,14 +68,12 @@ public class KeyMapper {
                 return KeyEvent.VK_F11;
             case F12:
                 return KeyEvent.VK_F12;
-            // ... thêm các phím khác nếu cần
             default:
-                // Thử mapping tự động cho chữ và số
                 int code = fxKey.getCode();
                 if ((code >= 65 && code <= 90) || (code >= 48 && code <= 57)) {
                     return code;
                 }
-                return -1; // Không hỗ trợ hoặc không tìm thấy
+                return -1;
         }
     }
 }

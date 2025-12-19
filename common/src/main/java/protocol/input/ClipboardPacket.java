@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ClipboardPacket {
-    private String content; // Nội dung text copy được
+    private String content;
 }
