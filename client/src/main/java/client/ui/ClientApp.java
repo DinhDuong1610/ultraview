@@ -379,13 +379,13 @@ public class ClientApp extends Application {
             remoteStage = new Stage();
             remoteView = new ImageView();
             remoteView.setPreserveRatio(true);
-            remoteView.setFitWidth(1440);
+            remoteView.setFitWidth(1150);
 
             StackPane root = new StackPane(remoteView);
             root.setStyle("-fx-background-color: black;");
             root.setAlignment(Pos.CENTER);
 
-            Scene scene = new Scene(root, 1440, 900);
+            Scene scene = new Scene(root, 1150, 768);
             setupInputEvents(remoteView, scene);
 
             remoteStage.setTitle("Remote Control - " +
