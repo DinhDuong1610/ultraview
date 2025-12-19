@@ -56,7 +56,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
             case CHAT_MESSAGE:
                 ChatMessage chat = (ChatMessage) packet.getPayload();
                 if (onMessageReceived != null)
-                    onMessageReceived.accept(chat.getMessage());
+                    onMessageReceived.accept("[" + chat.getSenderId() + "]: " + chat.getMessage());
                 break;
 
             case START_STREAM:

@@ -69,7 +69,7 @@ public class ClientApp extends Application {
     }
 
     private void initServices() {
-        networkClient = new NetworkClient("192.168.1.8", 8080);
+        networkClient = new NetworkClient("172.20.10.3", 8080);
 
         fileSender = new FileSender(networkClient);
         fileReceiver = new FileReceiver();
