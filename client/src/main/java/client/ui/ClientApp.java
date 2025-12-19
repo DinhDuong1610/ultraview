@@ -369,74 +369,80 @@ public class ClientApp extends Application {
 
     }
 
-    // --- REMOTE VIEW WINDOW LOGIC ---
-    // private void showRemoteWindow(Image image) {
-    // if (remoteStage == null || !remoteStage.isShowing()) {
-    // remoteStage = new Stage();
-    // remoteView = new ImageView();
-    // remoteView.setPreserveRatio(true);
-    // remoteView.setFitWidth(1024);
+    // ---
 
-    // StackPane root = new StackPane(remoteView);
-    // root.setStyle("-fx-background-color: black;");
-    // root.setAlignment(Pos.CENTER);
+    // REMOTE VIEW
+    // WINDOW LOGIC---
 
-    // Scene scene = new Scene(root, 1024, 768);
-    // setupInputEvents(remoteView, scene);
-
-    // remoteStage.setTitle("Remote Control - " +
-    // dashboardController.getTargetId());
-    // remoteStage.setScene(scene);
-    // remoteStage.show();
-    // remoteStage.setOnCloseRequest(e -> remoteStage = null);
-    // }
-    // remoteView.setImage(image);
-    // }
-
-    // --- REMOTE VIEW WINDOW LOGIC ---
     private void showRemoteWindow(Image image) {
         if (remoteStage == null || !remoteStage.isShowing()) {
             remoteStage = new Stage();
             remoteView = new ImageView();
-
-            // Giữ tỷ lệ khung hình (để hình không bị méo)
             remoteView.setPreserveRatio(true);
-
-            // BỎ DÒNG NÀY: remoteView.setFitWidth(1024);
-            // Thay vào đó, ta sẽ bind kích thước ở dưới
+            remoteView.setFitWidth(1600);
 
             StackPane root = new StackPane(remoteView);
             root.setStyle("-fx-background-color: black;");
             root.setAlignment(Pos.CENTER);
 
-            // Tạo Scene (Kích thước ban đầu không quan trọng lắm vì sẽ phóng to ngay)
-            Scene scene = new Scene(root, 1024, 768);
-
-            // --- [QUAN TRỌNG] BINDING KÍCH THƯỚC ---
-            // Tự động thay đổi kích thước ảnh khi cửa sổ thay đổi
-            remoteView.fitWidthProperty().bind(scene.widthProperty());
-            remoteView.fitHeightProperty().bind(scene.heightProperty());
-            // ----------------------------------------
-
+            Scene scene = new Scene(root, 1600, 1200);
             setupInputEvents(remoteView, scene);
 
-            remoteStage.setTitle("Remote Control - " + dashboardController.getTargetId());
+            remoteStage.setTitle("Remote Control - " +
+                    dashboardController.getTargetId());
             remoteStage.setScene(scene);
-
-            // --- LỰA CHỌN CHẾ ĐỘ HIỂN THỊ ---
-
-            // Cách 1: Phóng to tối đa (Vẫn hiện thanh tiêu đề và Taskbar) -> KHUYÊN DÙNG
-            remoteStage.setMaximized(true);
-
-            // Cách 2: Full Screen hoàn toàn (Tràn viền, che mất Taskbar)
-            // remoteStage.setFullScreen(true);
-            // remoteStage.setFullScreenExitHint("Nhấn ESC để thoát chế độ toàn màn hình");
-
             remoteStage.show();
             remoteStage.setOnCloseRequest(e -> remoteStage = null);
         }
         remoteView.setImage(image);
     }
+
+    // --- REMOTE VIEW WINDOW LOGIC ---
+    // private void showRemoteWindow(Image image) {
+    // if (remoteStage == null || !remoteStage.isShowing()) {
+    // remoteStage = new Stage();
+    // remoteView = new ImageView();
+
+    // // Giữ tỷ lệ khung hình (để hình không bị méo)
+    // remoteView.setPreserveRatio(true);
+
+    // // BỎ DÒNG NÀY: remoteView.setFitWidth(1024);
+    // // Thay vào đó, ta sẽ bind kích thước ở dưới
+
+    // StackPane root = new StackPane(remoteView);
+    // root.setStyle("-fx-background-color: black;");
+    // root.setAlignment(Pos.CENTER);
+
+    // // Tạo Scene (Kích thước ban đầu không quan trọng lắm vì sẽ phóng to ngay)
+    // Scene scene = new Scene(root, 1024, 768);
+
+    // // --- [QUAN TRỌNG] BINDING KÍCH THƯỚC ---
+    // // Tự động thay đổi kích thước ảnh khi cửa sổ thay đổi
+    // remoteView.fitWidthProperty().bind(scene.widthProperty());
+    // remoteView.fitHeightProperty().bind(scene.heightProperty());
+    // // ----------------------------------------
+
+    // setupInputEvents(remoteView, scene);
+
+    // remoteStage.setTitle("Remote Control - " +
+    // dashboardController.getTargetId());
+    // remoteStage.setScene(scene);
+
+    // // --- LỰA CHỌN CHẾ ĐỘ HIỂN THỊ ---
+
+    // // Cách 1: Phóng to tối đa (Vẫn hiện thanh tiêu đề và Taskbar) -> KHUYÊN DÙNG
+    // remoteStage.setMaximized(true);
+
+    // // Cách 2: Full Screen hoàn toàn (Tràn viền, che mất Taskbar)
+    // // remoteStage.setFullScreen(true);
+    // // remoteStage.setFullScreenExitHint("Nhấn ESC để thoát chế độ toàn màn
+    // hình");
+
+    // remoteStage.show();
+    // remoteStage.setOnCloseRequest(e -> remoteStage = null);
+    // }
+    // remoteView.setImage(image);
+    // }
 
     private void closeRemoteWindow() {
         if (remoteStage != null) {
@@ -459,63 +465,12 @@ public class ClientApp extends Application {
         scene.setOnKeyReleased(e -> sendKey(4, e.getCode()));
     }
 
-    // private void sendMouse(double x, double y, ImageView view, int action, int
-    // btn) {
-    // double w = view.getBoundsInLocal().getWidth();
-    // double h = view.getBoundsInLocal().getHeight();
-    // if (w > 0 && h > 0) {
-    // networkClient.sendControl(new ControlPayload(action, (float) (x / w), (float)
-    // (y / h), btn, 0));
-    // }
-    // }
-
-    // --- HÀM GỬI CHUỘT THÔNG MINH (FIX LỖI FULL SCREEN) ---
-    private void sendMouse(double eventX, double eventY, ImageView view, int action, int btn) {
-        if (networkClient == null || view.getImage() == null)
-            return;
-
-        // 1. Lấy kích thước thực của vùng chứa (ImageView/Window)
-        double viewWidth = view.getBoundsInLocal().getWidth();
-        double viewHeight = view.getBoundsInLocal().getHeight();
-
-        // 2. Lấy kích thước gốc của ảnh (Màn hình đối tác)
-        double imgWidth = view.getImage().getWidth();
-        double imgHeight = view.getImage().getHeight();
-
-        if (viewWidth == 0 || viewHeight == 0 || imgWidth == 0 || imgHeight == 0)
-            return;
-
-        // 3. Tính toán tỷ lệ scale hiện tại (Do preserveRatio=true)
-        double scaleX = viewWidth / imgWidth;
-        double scaleY = viewHeight / imgHeight;
-
-        // Tỷ lệ scale thực tế là cái nhỏ hơn (để ảnh nằm lọt trong khung)
-        double actualScale = Math.min(scaleX, scaleY);
-
-        // 4. Tính kích thước thực tế của ảnh đang hiển thị trên màn hình
-        double actualImgWidth = imgWidth * actualScale;
-        double actualImgHeight = imgHeight * actualScale;
-
-        // 5. Tính toán phần thừa (Dải đen - Black Bars)
-        // Vì ảnh được căn giữa (Center) nên phần thừa chia đều 2 bên
-        double offsetX = (viewWidth - actualImgWidth) / 2;
-        double offsetY = (viewHeight - actualImgHeight) / 2;
-
-        // 6. Tính toạ độ chuột tương đối trên ảnh thực
-        double relativeX = eventX - offsetX;
-        double relativeY = eventY - offsetY;
-
-        // 7. Kiểm tra nếu click vào vùng đen thì BỎ QUA (không gửi)
-        if (relativeX < 0 || relativeX > actualImgWidth || relativeY < 0 || relativeY > actualImgHeight) {
-            return;
+    private void sendMouse(double x, double y, ImageView view, int action, int btn) {
+        double w = view.getBoundsInLocal().getWidth();
+        double h = view.getBoundsInLocal().getHeight();
+        if (w > 0 && h > 0) {
+            networkClient.sendControl(new ControlPayload(action, (float) (x / w), (float) (y / h), btn, 0));
         }
-
-        // 8. Chuẩn hóa toạ độ (0.0 -> 1.0)
-        float normalizedX = (float) (relativeX / actualImgWidth);
-        float normalizedY = (float) (relativeY / actualImgHeight);
-
-        // Gửi đi
-        networkClient.sendControl(new ControlPayload(action, normalizedX, normalizedY, btn, 0));
     }
 
     private void sendKey(int action, KeyCode key) {
