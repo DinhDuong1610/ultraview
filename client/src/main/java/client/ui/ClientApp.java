@@ -459,12 +459,63 @@ public class ClientApp extends Application {
         scene.setOnKeyReleased(e -> sendKey(4, e.getCode()));
     }
 
-    private void sendMouse(double x, double y, ImageView view, int action, int btn) {
-        double w = view.getBoundsInLocal().getWidth();
-        double h = view.getBoundsInLocal().getHeight();
-        if (w > 0 && h > 0) {
-            networkClient.sendControl(new ControlPayload(action, (float) (x / w), (float) (y / h), btn, 0));
+    // private void sendMouse(double x, double y, ImageView view, int action, int
+    // btn) {
+    // double w = view.getBoundsInLocal().getWidth();
+    // double h = view.getBoundsInLocal().getHeight();
+    // if (w > 0 && h > 0) {
+    // networkClient.sendControl(new ControlPayload(action, (float) (x / w), (float)
+    // (y / h), btn, 0));
+    // }
+    // }
+
+    // --- HÀM GỬI CHUỘT THÔNG MINH (FIX LỖI FULL SCREEN) ---
+    private void sendMouse(double eventX, double eventY, ImageView view, int action, int btn) {
+        if (networkClient == null || view.getImage() == null)
+            return;
+
+        // 1. Lấy kích thước thực của vùng chứa (ImageView/Window)
+        double viewWidth = view.getBoundsInLocal().getWidth();
+        double viewHeight = view.getBoundsInLocal().getHeight();
+
+        // 2. Lấy kích thước gốc của ảnh (Màn hình đối tác)
+        double imgWidth = view.getImage().getWidth();
+        double imgHeight = view.getImage().getHeight();
+
+        if (viewWidth == 0 || viewHeight == 0 || imgWidth == 0 || imgHeight == 0)
+            return;
+
+        // 3. Tính toán tỷ lệ scale hiện tại (Do preserveRatio=true)
+        double scaleX = viewWidth / imgWidth;
+        double scaleY = viewHeight / imgHeight;
+
+        // Tỷ lệ scale thực tế là cái nhỏ hơn (để ảnh nằm lọt trong khung)
+        double actualScale = Math.min(scaleX, scaleY);
+
+        // 4. Tính kích thước thực tế của ảnh đang hiển thị trên màn hình
+        double actualImgWidth = imgWidth * actualScale;
+        double actualImgHeight = imgHeight * actualScale;
+
+        // 5. Tính toán phần thừa (Dải đen - Black Bars)
+        // Vì ảnh được căn giữa (Center) nên phần thừa chia đều 2 bên
+        double offsetX = (viewWidth - actualImgWidth) / 2;
+        double offsetY = (viewHeight - actualImgHeight) / 2;
+
+        // 6. Tính toạ độ chuột tương đối trên ảnh thực
+        double relativeX = eventX - offsetX;
+        double relativeY = eventY - offsetY;
+
+        // 7. Kiểm tra nếu click vào vùng đen thì BỎ QUA (không gửi)
+        if (relativeX < 0 || relativeX > actualImgWidth || relativeY < 0 || relativeY > actualImgHeight) {
+            return;
         }
+
+        // 8. Chuẩn hóa toạ độ (0.0 -> 1.0)
+        float normalizedX = (float) (relativeX / actualImgWidth);
+        float normalizedY = (float) (relativeY / actualImgHeight);
+
+        // Gửi đi
+        networkClient.sendControl(new ControlPayload(action, normalizedX, normalizedY, btn, 0));
     }
 
     private void sendKey(int action, KeyCode key) {
