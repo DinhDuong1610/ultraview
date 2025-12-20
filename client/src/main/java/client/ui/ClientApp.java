@@ -45,7 +45,7 @@ public class ClientApp extends Application {
     private BorderPane mainLayout;
     private Button btnMic;
 
-    private boolean isMicOn = true;
+    private boolean isMicOn = false;
     private final String myId = generateRandomId();
     private final String myPass = generateRandomPass();
 
@@ -209,7 +209,6 @@ public class ClientApp extends Application {
                 if (res.isSuccess()) {
                     mainLayout.setCenter(chatController.getView());
                     startMicAuto();
-                    toggleMic();
                 } else {
                     showAlert("Lỗi kết nối", res.getMessage());
                 }
