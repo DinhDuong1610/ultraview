@@ -128,7 +128,7 @@ public class ClientApp extends Application {
         footer.setStyle("-fx-background-color: #007acc;");
         footer.setAlignment(Pos.CENTER_LEFT);
 
-        btnMic = new Button("🎙 Mic: ON");
+        btnMic = new Button("🔇 Mic: OFF");
         btnMic.setStyle(
                 "-fx-background-color: #1e1e1e; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
         btnMic.setOnAction(e -> toggleMic());
