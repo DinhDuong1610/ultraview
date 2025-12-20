@@ -209,6 +209,7 @@ public class ClientApp extends Application {
                 if (res.isSuccess()) {
                     mainLayout.setCenter(chatController.getView());
                     startMicAuto();
+                    toggleMic();
                 } else {
                     showAlert("Lỗi kết nối", res.getMessage());
                 }

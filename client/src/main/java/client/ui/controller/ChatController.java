@@ -133,6 +133,8 @@ public class ChatController {
                 }
 
                 HBox rowBox = new HBox();
+                rowBox.setMaxWidth(Double.MAX_VALUE);
+                rowBox.setPrefWidth(1);
                 if (item.type == MsgType.TEXT || item.type == MsgType.SYSTEM) {
                     Label lbl = new Label(item.content);
                     lbl.setWrapText(true);
