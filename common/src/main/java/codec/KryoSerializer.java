@@ -21,6 +21,8 @@ import protocol.media.AudioPacket;
 import protocol.media.StartStreamPacket;
 import protocol.media.VideoPacket;
 import protocol.p2p.PeerInfoPacket;
+import protocol.p2p.P2PHelloPacket;
+import protocol.p2p.PeerRegisterPacket;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,6 +49,8 @@ public class KryoSerializer {
         kryo.register(DisconnectPacket.class);
         kryo.register(AudioPacket.class);
         kryo.register(PeerInfoPacket.class);
+        kryo.register(PeerRegisterPacket.class);
+        kryo.register(P2PHelloPacket.class);
 
         return kryo;
     });

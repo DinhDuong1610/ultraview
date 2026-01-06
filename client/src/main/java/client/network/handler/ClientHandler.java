@@ -18,6 +18,8 @@ import protocol.input.ControlPayload;
 import protocol.media.AudioPacket;
 import protocol.media.StartStreamPacket;
 import protocol.p2p.PeerInfoPacket;
+import java.util.function.Consumer;
+import protocol.media.StartStreamPacket;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -31,9 +33,11 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
 
     public static Consumer<String> onMessageReceived;
     public static Consumer<ConnectResponsePacket> onConnectResult;
-    public static Consumer<String> onStartStreaming;
+    public static Consumer<StartStreamPacket> onStartStreaming;
     public static Consumer<PeerInfoPacket> onPeerInfoReceived;
     public static Consumer<String> onPartnerDisconnect;
+
+    public static Runnable onLoginSuccess;
 
     public static Consumer<FileOfferPacket> onFileOffer;
     public static Consumer<String> onFileAccepted;
@@ -48,6 +52,13 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
         PacketType type = packet.getType();
 
         switch (type) {
+            case LOGIN_RESPONSE:
+                String res = (String) packet.getPayload();
+                if ("OK".equals(res)) {
+                    if (onLoginSuccess != null)
+                        onLoginSuccess.run();
+                }
+                break;
             case CONNECT_RESPONSE:
                 if (onConnectResult != null)
                     onConnectResult.accept((ConnectResponsePacket) packet.getPayload());
@@ -61,8 +72,9 @@ public class ClientHandler extends SimpleChannelInboundHandler<NetworkPacket> {
 
             case START_STREAM:
                 StartStreamPacket stream = (StartStreamPacket) packet.getPayload();
-                if (onStartStreaming != null)
-                    onStartStreaming.accept(stream.getTargetId());
+                if (onStartStreaming != null) {
+                    onStartStreaming.accept(stream);
+                }
                 break;
 
             case DISCONNECT_NOTICE:

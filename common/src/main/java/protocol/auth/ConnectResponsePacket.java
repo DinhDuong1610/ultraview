@@ -8,4 +8,7 @@ import lombok.*;
 public class ConnectResponsePacket {
     private boolean success;
     private String message;
+    private String sessionId;
+    private String peerHost;
+    private int peerControlPort;
 }

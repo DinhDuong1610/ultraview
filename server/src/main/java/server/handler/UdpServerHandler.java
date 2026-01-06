@@ -38,20 +38,21 @@ public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket
                 }
             }
 
-            String targetId = video.getTargetId();
+            // target thật = partner đã được server pair
+            String targetId = ServerContext.getPartner(senderId);
+            if (targetId == null)
+                return;
 
-            if (targetId != null) {
-                InetSocketAddress targetAddr = ServerContext.getUdpAddress(targetId);
+            InetSocketAddress targetAddr = ServerContext.getUdpAddress(targetId);
+            if (targetAddr == null)
+                return;
 
-                if (targetAddr != null) {
-                    DatagramPacket relayPacket = new DatagramPacket(
-                            Unpooled.wrappedBuffer(data),
-                            targetAddr);
+            // relay
+            DatagramPacket relayPacket = new DatagramPacket(
+                    Unpooled.wrappedBuffer(data),
+                    targetAddr);
+            ctx.writeAndFlush(relayPacket);
 
-                    ctx.writeAndFlush(relayPacket);
-                    System.out.println("-> Relaying data to " + targetId);
-                }
-            }
         }
     }
 

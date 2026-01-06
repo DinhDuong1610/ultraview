@@ -16,5 +16,7 @@ public enum PacketType {
     START_STREAM,
     DISCONNECT_NOTICE,
     AUDIO_DATA,
-    PEER_INFO
+    PEER_INFO,
+    PEER_REGISTER,
+    P2P_HELLO
 }

@@ -24,6 +24,10 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
+import client.network.p2p.PeerControlClient;
+import protocol.p2p.P2PHelloPacket;
+import protocol.p2p.PeerRegisterPacket;
+
 import java.net.InetSocketAddress;
 
 public class NetworkClient {
@@ -32,6 +36,8 @@ public class NetworkClient {
     private int port;
     private Channel tcpChannel;
     private Channel udpChannel;
+    private String myId;
+    private final PeerControlClient peerControlClient = new PeerControlClient();
 
     private InetSocketAddress peerAddress;
     private volatile boolean p2pEnabled = true;
@@ -47,6 +53,8 @@ public class NetworkClient {
     }
 
     public void connect(String userId, String password) {
+        this.myId = userId;
+
         new Thread(() -> {
             EventLoopGroup group = new NioEventLoopGroup();
             try {
@@ -118,6 +126,31 @@ public class NetworkClient {
         }
     }
 
+    public void sendPeerRegister(int controlPort) {
+        sendTcpPacket(new NetworkPacket(PacketType.PEER_REGISTER, new PeerRegisterPacket(controlPort)));
+    }
+
+    public void connectPeerControl(String host, int port, String sessionId) {
+        new Thread(() -> {
+            try {
+                peerControlClient.connect(host, port);
+                peerControlClient.send(new NetworkPacket(PacketType.P2P_HELLO,
+                        new P2PHelloPacket(myId, sessionId)));
+                System.out.println("P2P Control connected: " + host + ":" + port);
+            } catch (Exception e) {
+                System.out.println("P2P Control connect failed -> fallback TCP. " + e.getMessage());
+            }
+        }).start();
+    }
+
+    public boolean isPeerControlActive() {
+        return peerControlClient.isActive();
+    }
+
+    public void closePeerControl() {
+        peerControlClient.close();
+    }
+
     public void setP2PEnabled(boolean enabled) {
         this.p2pEnabled = enabled;
         System.out.println(">>> Switch Mode: " + (enabled ? "P2P" : "RELAY"));
@@ -136,17 +169,29 @@ public class NetworkClient {
     }
 
     public void sendControl(ControlPayload payload) {
-        sendTcpPacket(new NetworkPacket(PacketType.CONTROL_SIGNAL, payload));
+        NetworkPacket p = new NetworkPacket(PacketType.CONTROL_SIGNAL, payload);
+        if (isPeerControlActive())
+            peerControlClient.send(p);
+        else
+            sendTcpPacket(p);
     }
 
     public void sendClipboard(String text) {
-        sendTcpPacket(new NetworkPacket(PacketType.CLIPBOARD_DATA, new ClipboardPacket(text)));
+        NetworkPacket p = new NetworkPacket(PacketType.CLIPBOARD_DATA, new ClipboardPacket(text));
+        if (isPeerControlActive())
+            peerControlClient.send(p);
+        else
+            sendTcpPacket(p);
     }
 
     public void sendAudio(byte[] data, int length) {
         byte[] exactData = new byte[length];
         System.arraycopy(data, 0, exactData, 0, length);
-        sendTcpPacket(new NetworkPacket(PacketType.AUDIO_DATA, new AudioPacket(exactData, length)));
+        NetworkPacket p = new NetworkPacket(PacketType.AUDIO_DATA, new AudioPacket(exactData, length));
+        if (isPeerControlActive())
+            peerControlClient.send(p);
+        else
+            sendTcpPacket(p);
     }
 
     public void sendVideoPacket(VideoPacket packet) {

@@ -10,11 +10,15 @@ import server.ui.ServerApp;
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Objects;
 
 public class ServerContext {
 
     private static final Map<String, Channel> clients = new ConcurrentHashMap<>();
     private static final Map<String, String> passwords = new ConcurrentHashMap<>();
+    private static final Map<String, String> partners = new ConcurrentHashMap<>();
+    private static final Map<String, Integer> controlPorts = new ConcurrentHashMap<>();
+    private static final Map<String, String> sessions = new ConcurrentHashMap<>();
 
     private static final Map<String, InetSocketAddress> udpClients = new ConcurrentHashMap<>();
 
@@ -33,6 +37,8 @@ public class ServerContext {
         clients.remove(userId);
         passwords.remove(userId);
         udpClients.remove(userId);
+        controlPorts.remove(userId);
+        unpair(userId);
 
         ServerApp.updateClientList(new ClientModel(userId, "", ""), false);
     }
@@ -64,5 +70,52 @@ public class ServerContext {
                 return entry.getKey();
         }
         return null;
+    }
+
+    public static synchronized boolean pair(String a, String b, String sessionId) {
+        if (a == null || b == null || a.equals(b))
+            return false;
+        if (partners.containsKey(a) || partners.containsKey(b))
+            return false;
+
+        partners.put(a, b);
+        partners.put(b, a);
+
+        sessions.put(a, sessionId);
+        sessions.put(b, sessionId);
+        return true;
+    }
+
+    public static synchronized String unpair(String userId) {
+        if (userId == null)
+            return null;
+        String other = partners.remove(userId);
+        if (other != null)
+            partners.remove(other);
+
+        sessions.remove(userId);
+        if (other != null)
+            sessions.remove(other);
+        return other;
+    }
+
+    public static String getPartner(String userId) {
+        return partners.get(userId);
+    }
+
+    public static String getSessionId(String userId) {
+        return sessions.get(userId);
+    }
+
+    public static void setControlPort(String userId, int port) {
+        controlPorts.put(userId, port);
+    }
+
+    public static Integer getControlPort(String userId) {
+        return controlPorts.get(userId);
+    }
+
+    public static boolean isPaired(String userId) {
+        return userId != null && partners.containsKey(userId);
     }
 }
