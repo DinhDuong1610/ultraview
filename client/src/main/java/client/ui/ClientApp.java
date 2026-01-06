@@ -653,19 +653,19 @@ public class ClientApp extends Application {
         scene.setOnKeyReleased(e -> sendKey(4, e.getCode()));
 
         // Double click: FIT <-> 1:1
-        view.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2) {
-                if (zoomMode == ZoomMode.FIT) {
-                    zoomMode = ZoomMode.MANUAL;
-                    setZoom(1.0);
-                    centerScroll();
-                } else {
-                    zoomMode = ZoomMode.FIT;
-                    applyFitZoom();
-                }
-                e.consume();
-            }
-        });
+        // view.setOnMouseClicked(e -> {
+        // if (e.getClickCount() == 2) {
+        // if (zoomMode == ZoomMode.FIT) {
+        // zoomMode = ZoomMode.MANUAL;
+        // setZoom(1.0);
+        // centerScroll();
+        // } else {
+        // zoomMode = ZoomMode.FIT;
+        // applyFitZoom();
+        // }
+        // e.consume();
+        // }
+        // });
 
     }
 

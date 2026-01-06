@@ -12,6 +12,19 @@ import java.net.InetSocketAddress;
 
 public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
+    private final java.util.concurrent.ConcurrentHashMap<String, Integer> udpCounters = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private void logUdpRelay(VideoPacket video, InetSocketAddress targetAddr, int bytes) {
+        String sender = video.getSenderId();
+        int c = udpCounters.merge(sender, 1, Integer::sum);
+
+        if (c % 30 == 0) {
+            String partner = ServerContext.getPartner(sender);
+            System.out.printf("[UDP-RELAY] sender=%s partner=%s -> %s bytes=%d count=%d%n",
+                    sender, partner, targetAddr, bytes, c);
+        }
+    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket packet) throws Exception {
         byte[] data = new byte[packet.content().readableBytes()];
@@ -51,6 +64,7 @@ public class UdpServerHandler extends SimpleChannelInboundHandler<DatagramPacket
             DatagramPacket relayPacket = new DatagramPacket(
                     Unpooled.wrappedBuffer(data),
                     targetAddr);
+            logUdpRelay(video, targetAddr, data.length);
             ctx.writeAndFlush(relayPacket);
 
         }
