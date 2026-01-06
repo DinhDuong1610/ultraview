@@ -73,6 +73,10 @@ public class ClientApp extends Application {
     private double zoom = 1.0;
 
     private Label lblZoom; // hiển thị % zoom
+    private Label lblStatus;
+    private Region spacer;
+    private CheckBox cbProtect;
+    private ChoiceBox<String> cbLevel;
 
     @Override
     public void start(Stage stage) throws InterruptedException {
@@ -161,12 +165,35 @@ public class ClientApp extends Application {
                 "-fx-background-color: #1e1e1e; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;");
         btnMic.setOnAction(e -> toggleMic());
 
-        Label lblStatus = new Label("Ready (Secured connection)");
+        lblStatus = new Label("Ready (Secured connection)");
         lblStatus.setStyle("-fx-text-fill: white;");
-        Region spacer = new Region();
+        spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        footer.getChildren().addAll(btnMic, spacer, lblStatus);
+        cbProtect = new CheckBox("Protect");
+        cbProtect.setSelected(true);
+        cbProtect.setStyle("-fx-text-fill: white; -fx-font-weight: bold;");
+
+        cbLevel = new ChoiceBox<>();
+        cbLevel.getItems().addAll("Normal", "Strict");
+        cbLevel.setValue("Normal");
+
+        cbProtect.selectedProperty().addListener((obs, oldV, newV) -> {
+            if (currentSender != null)
+                currentSender.setProtectionEnabled(newV);
+        });
+
+        cbLevel.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+            if (currentSender == null)
+                return;
+            if ("Strict".equals(newV))
+                currentSender.setProtectionLevel(ScreenSender.ProtectionLevel.STRICT);
+            else
+                currentSender.setProtectionLevel(ScreenSender.ProtectionLevel.NORMAL);
+        });
+
+        footer.getChildren().addAll(btnMic, cbProtect, cbLevel, spacer, lblStatus);
+
         mainLayout.setBottom(footer);
 
         Scene scene = new Scene(mainLayout, 900, 600);
@@ -266,7 +293,15 @@ public class ClientApp extends Application {
                     if (currentSender != null)
                         currentSender.stopStreaming();
                     currentSender = new ScreenSender(networkClient, myId, controllerId);
+
+                    // áp setting hiện tại từ UI (nếu bạn lưu biến state)
+                    currentSender.setProtectionEnabled(cbProtect.isSelected());
+                    currentSender.setProtectionLevel("Strict".equals(cbLevel.getValue())
+                            ? ScreenSender.ProtectionLevel.STRICT
+                            : ScreenSender.ProtectionLevel.NORMAL);
+
                     currentSender.startStreaming();
+
                 }).start();
 
                 startMicAuto();

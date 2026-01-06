@@ -32,6 +32,20 @@ public class ScreenSender {
     private static final int MAX_CHUNK_SIZE = 45000;
     private long frameIdCounter = 0;
 
+    public enum ProtectionLevel {
+        NORMAL, STRICT
+    }
+
+    private volatile boolean protectionEnabled = true;
+    private volatile ProtectionLevel protectionLevel = ProtectionLevel.NORMAL;
+
+    private static final long WINDOW_PROBE_INTERVAL_MS = 150;
+    private long lastProbeMs = 0;
+
+    private volatile String activeTitle = "";
+    private volatile String activeProcess = "";
+    private volatile Rectangle activeWinRect = null;
+
     private static final String[] SENSITIVE_TITLES = {
             // --- NHÓM 1: ĐĂNG NHẬP & XÁC THỰC (Authentication) ---
             "password", "mật khẩu", "mat khau",
@@ -92,7 +106,13 @@ public class ScreenSender {
         this.myId = myId;
         this.targetId = targetId;
         try {
-            this.screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+            Rectangle all = new Rectangle(0, 0, 0, 0);
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            for (GraphicsDevice gd : ge.getScreenDevices()) {
+                Rectangle b = gd.getDefaultConfiguration().getBounds();
+                all = all.union(b);
+            }
+            this.screenRect = all;
             this.robot = new Robot();
         } catch (AWTException e) {
             e.printStackTrace();
@@ -117,7 +137,8 @@ public class ScreenSender {
         try {
             BufferedImage capture = robot.createScreenCapture(screenRect);
 
-            checkAndMaskWindow(capture);
+            probeActiveWindowIfNeeded();
+            applyProtectionMasks(capture);
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
@@ -150,6 +171,74 @@ public class ScreenSender {
 
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private void applyProtectionMasks(BufferedImage image) {
+        if (!protectionEnabled)
+            return;
+
+        String title = activeTitle;
+        String proc = activeProcess;
+        Rectangle win = activeWinRect;
+        if (win == null)
+            return;
+
+        // Map window rect -> capture coords (vì capture bắt đầu từ screenRect.x/y)
+        Rectangle r = new Rectangle(win);
+        r.translate(-screenRect.x, -screenRect.y);
+
+        boolean isBrowser = isOneOf(proc, "chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "opera.exe");
+        boolean isIDE = isOneOf(proc, "code.exe", "idea64.exe", "pycharm64.exe", "eclipse.exe", "devenv.exe",
+                "notepad++.exe", "sublime_text.exe");
+
+        // ===== CASE 1: Web login/password/OTP =====
+        boolean isLoginLike = containsAny(title, "login", "log in", "signin", "sign in", "đăng nhập", "dang nhap",
+                "password", "mật khẩu", "mat khau", "reset password",
+                "otp", "2fa", "mfa", "verify", "verification", "xác thực", "authenticator");
+
+        if (isBrowser && isLoginLike) {
+            if (protectionLevel == ProtectionLevel.STRICT) {
+                // Che toàn bộ nội dung web
+                Rectangle content = browserContentRect(r);
+                fillRegion(image, content); // nhanh & an toàn
+            } else {
+                // Normal: che address bar + vùng giữa (form login)
+                pixelateRegion(image, addressBarRect(r), 14);
+                pixelateRegion(image, centerModalRect(r), 16);
+            }
+            return; // đã match case nhạy cảm mạnh, khỏi check tiếp
+        }
+
+        // ===== CASE 2: .env / secrets trong IDE/editor =====
+        boolean isEnvLike = containsAny(title,
+                ".env", "dotenv", "secret", "secrets", "credential", "credentials",
+                "apikey", "api key", "token", "private key", "id_rsa", ".pem", ".p12");
+
+        if (isIDE && isEnvLike) {
+            if (protectionLevel == ProtectionLevel.STRICT) {
+                // Che gần như toàn cửa sổ (trừ title bar chút)
+                Rectangle all = new Rectangle(r.x, (int) (r.y + r.height * 0.05), r.width, (int) (r.height * 0.95));
+                fillRegion(image, all);
+            } else {
+                // Normal: che vùng editor pane (chừa sidebar để điều hướng)
+                Rectangle editor = editorPaneRect(r);
+                pixelateRegion(image, editor, 14);
+            }
+            return;
+        }
+
+        // ===== CASE 3: Gmail / OTP mail =====
+        boolean isGmail = isBrowser && containsAny(title, "gmail", "mail.google.com", "inbox");
+        if (isGmail) {
+            if (protectionLevel == ProtectionLevel.STRICT) {
+                // Che toàn bộ nội dung mail
+                fillRegion(image, browserContentRect(r));
+            } else {
+                // Normal: che vùng đọc mail (center/right) để không lộ OTP
+                pixelateRegion(image, gmailReadingPaneRect(r), 14);
+            }
+            return;
         }
     }
 
@@ -204,5 +293,95 @@ public class ScreenSender {
                 }
             }
         }
+    }
+
+    private void probeActiveWindowIfNeeded() {
+        long now = System.currentTimeMillis();
+        if (now - lastProbeMs < WINDOW_PROBE_INTERVAL_MS)
+            return;
+        lastProbeMs = now;
+
+        try {
+            activeTitle = WindowSensor.getActiveWindowTitle().toLowerCase();
+            activeProcess = WindowSensor.getActiveProcessName(); // bạn vừa thêm
+            activeWinRect = WindowSensor.getActiveWindowRect();
+        } catch (Exception ignored) {
+        }
+    }
+
+    private Rectangle browserContentRect(Rectangle w) {
+        int y = w.y + (int) (w.height * 0.16);
+        return new Rectangle(w.x, y, w.width, w.y + w.height - y);
+    }
+
+    private Rectangle addressBarRect(Rectangle w) {
+        int y = w.y + (int) (w.height * 0.06);
+        int h = (int) (w.height * 0.12);
+        return new Rectangle(w.x, y, w.width, h);
+    }
+
+    private Rectangle centerModalRect(Rectangle w) {
+        int x = w.x + (int) (w.width * 0.20);
+        int y = w.y + (int) (w.height * 0.18);
+        int ww = (int) (w.width * 0.60);
+        int hh = (int) (w.height * 0.70);
+        return new Rectangle(x, y, ww, hh);
+    }
+
+    private Rectangle editorPaneRect(Rectangle w) {
+        int x = w.x + (int) (w.width * 0.18); // chừa sidebar
+        int y = w.y + (int) (w.height * 0.12); // chừa menu
+        return new Rectangle(x, y, w.x + w.width - x, w.y + w.height - y);
+    }
+
+    private Rectangle gmailReadingPaneRect(Rectangle w) {
+        int y = w.y + (int) (w.height * 0.16);
+        int x = w.x + (int) (w.width * 0.35); // che phần center/right
+        return new Rectangle(x, y, w.x + w.width - x, w.y + w.height - y);
+    }
+
+    private boolean isOneOf(String v, String... arr) {
+        if (v == null)
+            return false;
+        for (String s : arr)
+            if (v.equals(s))
+                return true;
+        return false;
+    }
+
+    private boolean containsAny(String text, String... keys) {
+        if (text == null)
+            return false;
+        for (String k : keys)
+            if (text.contains(k))
+                return true;
+        return false;
+    }
+
+    private void fillRegion(BufferedImage img, Rectangle rect) {
+        if (rect == null)
+            return;
+
+        int xStart = Math.max(0, rect.x);
+        int yStart = Math.max(0, rect.y);
+        int xEnd = Math.min(img.getWidth(), rect.x + rect.width);
+        int yEnd = Math.min(img.getHeight(), rect.y + rect.height);
+
+        if (xEnd <= xStart || yEnd <= yStart)
+            return;
+
+        Graphics2D g = img.createGraphics();
+        g.setColor(Color.BLACK);
+        g.fillRect(xStart, yStart, xEnd - xStart, yEnd - yStart);
+        g.dispose();
+    }
+
+    public void setProtectionEnabled(boolean enabled) {
+        this.protectionEnabled = enabled;
+    }
+
+    public void setProtectionLevel(ProtectionLevel level) {
+        if (level != null)
+            this.protectionLevel = level;
     }
 }
